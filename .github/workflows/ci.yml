@@ -28,8 +28,8 @@ jobs:
         pip install PyYAML pytest pytest-cov
 
     - name: Run tests
+      shell: bash
       run: |
-        pytest tests/ -v --tb=short --co -q 2>/dev/null || true
         pytest tests/ -v --tb=short -x
 
     - name: Verify tool loading
