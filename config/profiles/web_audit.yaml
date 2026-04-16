@@ -1,0 +1,20 @@
+# =============================================================================
+# Pipeline Profile: Web Audit
+# =============================================================================
+# Full web application security assessment workflow.
+# Usage: python main.py pipeline web_audit --target http://example.com
+# =============================================================================
+
+name: "Web Application Audit"
+description: "Comprehensive web application security audit — recon through exploitation testing"
+
+steps:
+  - reconnaissance.dns_lookup
+  - reconnaissance.http_fingerprint
+  - reconnaissance.subdomain_discovery
+  - scanning.port_scanner
+  - web.dir_bruteforce
+  - web.xss_tester
+  - web.sqli_tester
+  - reporting.html_report
+  - reporting.json_report

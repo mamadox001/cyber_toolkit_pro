@@ -1,0 +1,44 @@
+# =============================================================================
+# CyberToolkit Pro — .gitignore
+# =============================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs & Reports (generated)
+logs/*.log
+logs/*.json
+reports/*.json
+reports/*.html
+
+# Keep directory structure
+!logs/.gitkeep
+!reports/.gitkeep
+
+# Environment
+.env
+.env.local

@@ -1,0 +1,16 @@
+# =============================================================================
+# Pipeline Profile: Quick Scan
+# =============================================================================
+# Fast reconnaissance and scanning workflow.
+# Usage: python main.py pipeline quick_scan --target example.com
+# =============================================================================
+
+name: "Quick Scan"
+description: "Fast reconnaissance and port scanning — ideal for initial assessment"
+
+steps:
+  - reconnaissance.dns_lookup
+  - reconnaissance.whois_lookup
+  - reconnaissance.http_fingerprint
+  - scanning.port_scanner
+  - reporting.json_report

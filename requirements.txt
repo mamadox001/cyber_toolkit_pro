@@ -1,0 +1,15 @@
+# =============================================================================
+# CyberToolkit Pro — Python Dependencies
+# =============================================================================
+# Core dependencies (required)
+PyYAML>=6.0
+
+# Optional: DNS resolution library (enhanced DNS lookup)
+# dnspython>=2.4.0
+
+# Optional: Web dashboard
+# fastapi>=0.110.0
+# uvicorn>=0.27.0
+
+# Optional: Enhanced CLI (alternative to readline)
+# prompt_toolkit>=3.0.0

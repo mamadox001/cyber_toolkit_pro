@@ -1,0 +1,48 @@
+# =============================================================================
+# CyberToolkit Pro — Default Configuration
+# =============================================================================
+# Override any of these settings by creating a custom YAML config
+# and passing it with: python main.py --config my_config.yaml
+# =============================================================================
+
+framework:
+  name: "CyberToolkit Pro"
+  version: "2.0.0"
+  log_level: "INFO"          # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_dir: "logs"
+  report_dir: "reports"
+  max_threads: 10
+  timeout: 30                # Default tool timeout in seconds
+
+scanning:
+  default_ports: "1-1024"
+  thread_count: 50
+  timeout: 2                 # Per-port timeout
+  banner_grab: true
+
+web:
+  user_agent: "CyberToolkitPro/2.0"
+  timeout: 10
+  max_redirects: 5
+  rate_limit_ms: 100         # Delay between requests
+
+detection:
+  threshold_requests: 50     # Requests per IP for anomaly flagging
+  threshold_failed_logins: 5
+  alert_cooldown_seconds: 300
+
+ai:
+  enabled: true              # Rule-based analysis (always available)
+  llm_enabled: false         # LLM API integration (requires API key)
+  llm_api_key: ""            # Set via env: ${OPENAI_API_KEY}
+  llm_model: "gpt-4"
+  llm_endpoint: "https://api.openai.com/v1/chat/completions"
+
+dashboard:
+  host: "127.0.0.1"
+  port: 8443
+
+reporting:
+  auto_save: true
+  format: "json"             # json or html
+  output_dir: "reports"
