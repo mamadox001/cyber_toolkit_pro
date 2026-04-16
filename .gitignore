@@ -32,12 +32,21 @@ Thumbs.db
 # Logs & Reports (generated)
 logs/*.log
 logs/*.json
+logs/audit/*.jsonl
 reports/*.json
 reports/*.html
+
+# Database (generated)
+data/*.db
+
+# Vault (sensitive)
+config/.vault
 
 # Keep directory structure
 !logs/.gitkeep
 !reports/.gitkeep
+!data/.gitkeep
+!logs/audit/.gitkeep
 
 # Environment
 .env

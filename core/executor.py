@@ -15,14 +15,16 @@ from core.config import Config
 from core import output
 
 
-def execute(tool: dict, args: Dict[str, Any], timeout: Optional[int] = None) -> ToolResult:
+def execute(tool: dict, args: Dict[str, Any], timeout: Optional[int] = None,
+            campaign_id: str = "") -> ToolResult:
     """
     Execute a single tool and return a structured ToolResult.
 
     Parameters:
-        tool:    dict with 'info' and 'module' keys (from registry)
-        args:    arguments to pass to tool's run() function
-        timeout: max seconds to wait (None = use config default)
+        tool:        dict with 'info' and 'module' keys (from registry)
+        args:        arguments to pass to tool's run() function
+        timeout:     max seconds to wait (None = use config default)
+        campaign_id: optional campaign to associate this execution with
 
     Returns:
         ToolResult with status, data, findings, timing info
@@ -34,6 +36,25 @@ def execute(tool: dict, args: Dict[str, Any], timeout: Optional[int] = None) -> 
     tool_name = tool["info"].name if hasattr(tool["info"], "name") else tool["info"].get("name", "unknown")
     target = args.get("target", "")
 
+    # --- Scope enforcement ---
+    try:
+        from core.scope import get_scope, ScopeViolation
+        scope = get_scope()
+        scope.enforce(target)
+    except ScopeViolation as e:
+        output.error(f"SCOPE VIOLATION: {e}")
+        try:
+            from core.audit import get_audit
+            get_audit().log_scope_violation(tool_name, target, str(e))
+        except Exception:
+            pass
+        return ToolResult(
+            tool_name=tool_name, target=target, status="blocked",
+            error=f"Scope violation: {e}"
+        )
+    except Exception:
+        pass  # Scope module not available — continue
+
     output.info(f"Running {tool_name}" + (f" → {target}" if target else ""))
     start = time.time()
 
@@ -44,16 +65,44 @@ def execute(tool: dict, args: Dict[str, Any], timeout: Optional[int] = None) -> 
         # If the module already returns a ToolResult, use it directly
         if isinstance(raw_result, ToolResult):
             raw_result.duration_ms = duration
-            return raw_result
+            result = raw_result
+        else:
+            # Otherwise wrap raw output into a ToolResult
+            result = ToolResult(
+                tool_name=tool_name,
+                target=target,
+                status="success",
+                data=raw_result if isinstance(raw_result, dict) else {"output": raw_result},
+                duration_ms=duration,
+            )
 
-        # Otherwise wrap raw output into a ToolResult
-        result = ToolResult(
-            tool_name=tool_name,
-            target=target,
-            status="success",
-            data=raw_result if isinstance(raw_result, dict) else {"output": raw_result},
-            duration_ms=duration,
-        )
+        # --- Audit trail ---
+        try:
+            from core.audit import get_audit
+            get_audit().log_execution(
+                tool_name=tool_name, target=target, args=args,
+                status=result.status, duration_ms=duration,
+                findings_count=len(result.findings) if result.findings else 0,
+                result_data=result.data if result.data else {}
+            )
+        except Exception:
+            pass
+
+        # --- Database persistence ---
+        try:
+            import uuid
+            from core.database import get_db
+            scan_id = f"{tool_name}_{uuid.uuid4().hex[:8]}"
+            get_db().save_scan(
+                scan_id=scan_id, tool_name=tool_name, target=target,
+                status=result.status, args=args,
+                data=result.data if result.data else {},
+                findings=result.findings if result.findings else [],
+                duration_ms=duration, campaign_id=campaign_id
+            )
+        except Exception:
+            pass
+
         return result
 
     except TimeoutError:

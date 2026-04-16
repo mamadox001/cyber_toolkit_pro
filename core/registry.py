@@ -98,7 +98,7 @@ class ToolRegistry:
         results = []
         for path, tool in self._tools.items():
             info = tool["info"]
-            searchable = f"{info.name} {info.description} {' '.join(info.tags)}".lower()
+            searchable = f"{info.name} {info.description} {' '.join(getattr(info, 'tags', []))}".lower()
             if query_lower in searchable or query_lower in path:
                 results.append(tool)
         return results

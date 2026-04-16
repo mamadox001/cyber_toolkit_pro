@@ -141,11 +141,83 @@ def create_app():
         registry = get_registry()
         return {
             "framework": "CyberToolkit Pro",
-            "version": "2.0.0",
+            "version": "2.5.0",
             "tools_loaded": registry.tool_count(),
             "categories": registry.categories(),
             "timestamp": datetime.utcnow().isoformat(),
         }
+
+    @app.get("/api/stats")
+    async def dashboard_stats():
+        """Get dashboard statistics from database."""
+        try:
+            from core.database import get_db
+            return get_db().get_dashboard_stats()
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/scans")
+    async def scan_history(target: str = "", tool: str = "", limit: int = 50):
+        """Get scan history from database."""
+        try:
+            from core.database import get_db
+            scans = get_db().get_scans(target=target, tool=tool, limit=limit)
+            return {"scans": scans, "total": len(scans)}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/findings")
+    async def findings(scan_id: str = "", severity: str = "", limit: int = 100):
+        """Get findings from database."""
+        try:
+            from core.database import get_db
+            results = get_db().get_findings(scan_id=scan_id, severity=severity, limit=limit)
+            return {"findings": results, "total": len(results)}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/targets")
+    async def targets():
+        """Get all known targets."""
+        try:
+            from core.database import get_db
+            return {"targets": get_db().get_targets()}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/audit")
+    async def audit_trail(tool: str = "", target: str = "", limit: int = 100):
+        """Get audit trail entries."""
+        try:
+            from core.audit import get_audit
+            entries = get_audit().get_entries(limit=limit, tool=tool, target=target)
+            return {"entries": entries, "total": len(entries)}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/campaigns")
+    async def campaigns():
+        """List all campaigns."""
+        try:
+            from core.campaign import CampaignManager
+            return {"campaigns": CampaignManager.list_campaigns()}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/scope")
+    async def scope_status():
+        """Get scope enforcement status."""
+        try:
+            from core.scope import get_scope
+            scope = get_scope()
+            return {
+                "enabled": scope.enabled,
+                "allowed_ips": [str(n) for n in scope.allowed_ips],
+                "allowed_domains": [p.pattern for p in scope.allowed_domains],
+                "excluded_ips": [str(n) for n in scope.excluded_ips],
+            }
+        except Exception as e:
+            return {"error": str(e)}
 
     return app
 

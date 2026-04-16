@@ -1,8 +1,10 @@
-# CyberToolkit Pro v2.0
+# CyberToolkit Pro v2.5
 
-> **Professional Cybersecurity Framework** — Offensive & Defensive Security Toolkit
->
-> A modular, extensible framework for penetration testing, security assessment, and blue team operations. Inspired by Metasploit, Burp Suite, and lightweight SIEM architectures.
+**Professional Cybersecurity Framework — Offensive & Defensive Security Toolkit**
+
+A modular, extensible framework for penetration testing, security assessment, and blue team operations. Inspired by Metasploit, Burp Suite, and lightweight SIEM architectures.
+
+> **43 tools** · **13 categories** · **Plugin architecture** · **SQLite database** · **Web dashboard** · **CI/CD ready**
 
 ---
 
@@ -27,6 +29,9 @@ python main.py list
 # Start web dashboard
 pip install fastapi uvicorn
 python main.py dashboard
+
+# Run tests
+pytest tests/ -v
 ```
 
 ---
@@ -35,34 +40,47 @@ python main.py dashboard
 
 ```
 cyber_toolkit_pro/
-├── main.py                 # CLI entry point (argparse)
-├── core/                   # Framework engine
-│   ├── cli.py              # Interactive shell
-│   ├── config.py           # YAML configuration
-│   ├── executor.py         # Tool execution + parallel
-│   ├── loader.py           # Auto-discovery module loader
-│   ├── logger.py           # Structured logging
-│   ├── models.py           # Data models (ToolResult, Finding, etc.)
-│   ├── output.py           # Console formatting + colors
-│   ├── pipeline.py         # Workflow chaining engine
-│   ├── registry.py         # Tool registry
-│   └── suggester.py        # AI reasoning engine
-├── modules/                # Tool modules (auto-discovered)
-│   ├── reconnaissance/     # DNS, WHOIS, subdomain, HTTP fingerprint
-│   ├── scanning/           # Port scanner, nmap, service detection
-│   ├── web/                # Dir brute, fuzzer, SQLi, XSS testing
-│   ├── exploitation/       # Reverse shell, payloads, exploit runner
-│   ├── passwords/          # Wordlist attack, hash cracker, cred checker
-│   ├── detection/          # Anomaly detector, IP tracker, alert system
-│   ├── log_analysis/       # Auth/web log parsers, SSH brute detection
-│   ├── forensics/          # File analyzer, string extractor, type detect
-│   ├── siem/               # Log aggregation, search, alert generation
-│   └── reporting/          # JSON + HTML report generation
-├── plugins/                # Drop-in plugin system
-├── config/                 # YAML configs + pipeline profiles
-├── wordlists/              # Brute force wordlists
-├── dashboard/              # FastAPI web dashboard
-└── Dockerfile              # Container support
+├── main.py                    # CLI entry point (argparse)
+├── core/                      # Framework engine
+│   ├── cli.py                 # Interactive shell
+│   ├── config.py              # YAML configuration
+│   ├── executor.py            # Tool execution + scope/audit/DB integration
+│   ├── async_executor.py      # Async execution engine (asyncio)
+│   ├── loader.py              # Auto-discovery module loader
+│   ├── logger.py              # Structured logging
+│   ├── models.py              # Data models (ToolResult, Finding, etc.)
+│   ├── output.py              # Console formatting + colors
+│   ├── pipeline.py            # Workflow chaining engine
+│   ├── registry.py            # Tool registry
+│   ├── suggester.py           # AI reasoning engine
+│   ├── scope.py               # Target scope enforcement
+│   ├── vault.py               # Encrypted credential vault
+│   ├── audit.py               # Immutable audit trail
+│   ├── database.py            # SQLite persistent storage
+│   └── campaign.py            # Multi-target campaign engine
+├── modules/                   # Tool modules (auto-discovered)
+│   ├── reconnaissance/        # DNS, WHOIS, subdomain, HTTP fingerprint
+│   ├── scanning/              # Port scanner, nmap, service detection, NSE
+│   ├── web/                   # Dir brute, fuzzer, SQLi, XSS testing
+│   ├── exploitation/          # Reverse shell, payloads, exploit runner
+│   ├── passwords/             # Wordlist attack, hash cracker, cred checker
+│   ├── detection/             # Anomaly detector, IP tracker, alert system
+│   ├── log_analysis/          # Auth/web log parsers, SSH brute detection
+│   ├── forensics/             # File analyzer, string extractor, type detect
+│   ├── siem/                  # Log aggregation, search, alert generation
+│   ├── osint/                 # Email harvest, social recon, breach, dorking
+│   ├── network/               # Packet sniffer, ARP detector, DNS monitor
+│   ├── wireless/              # WiFi scanner, rogue AP detector
+│   └── reporting/             # JSON, HTML, executive, compliance reports
+├── plugins/                   # Drop-in plugin system
+├── config/                    # YAML configs + pipeline profiles + scope
+├── wordlists/                 # Brute force wordlists
+├── dashboard/                 # FastAPI web dashboard
+├── tests/                     # pytest test suite
+├── data/                      # SQLite database (auto-created)
+├── logs/audit/                # Immutable audit trail (JSONL)
+├── .github/workflows/ci.yml   # GitHub Actions CI
+└── Dockerfile                 # Container support
 ```
 
 ---
@@ -71,88 +89,141 @@ cyber_toolkit_pro/
 
 | Category | Tool | Description |
 |----------|------|-------------|
-| **Reconnaissance** | `dns_lookup` | DNS record enumeration (A/MX/NS/TXT/SOA) |
-| | `subdomain_discovery` | Multi-threaded subdomain brute force |
-| | `whois_lookup` | WHOIS registration lookup |
-| | `http_fingerprint` | HTTP server/header/tech detection |
-| **Scanning** | `port_scanner` | Threaded TCP scanner + banner grabbing |
-| | `nmap_advanced` | Nmap wrapper with scan profiles |
-| | `service_detector` | Protocol-based service identification |
-| **Web** | `dir_bruteforce` | Web directory/file discovery |
-| | `http_fuzzer` | Parameter fuzzing engine |
-| | `sqli_tester` | Safe SQL injection detection |
-| | `xss_tester` | Reflected XSS detection |
-| **Exploitation** | `reverse_shell` | Multi-session listener (LAB ONLY) |
-| | `payload_generator` | Multi-platform payload generation |
-| | `exploit_runner` | Modular exploit framework |
-| **Passwords** | `wordlist_attack` | Dictionary login testing |
-| | `hash_cracker` | MD5/SHA1/SHA256 cracking |
-| | `credential_checker` | Cross-service credential reuse testing |
+| Recon | `dns_lookup` | DNS A/MX/NS/TXT + SPF/DMARC analysis |
+| Recon | `subdomain_discovery` | Multi-threaded subdomain brute force |
+| Recon | `whois_lookup` | Socket-based WHOIS with referral |
+| Recon | `http_fingerprint` | Security headers + tech detection |
+| Scanning | `port_scanner` | 50-thread TCP scanner + banner grab |
+| Scanning | `nmap_advanced` | 6 nmap profiles + XML parsing |
+| Scanning | `service_detector` | Protocol-specific service probes |
+| Scanning | `nse_runner` | Nmap NSE vulnerability script execution |
+| Web | `dir_bruteforce` | Directory discovery + sensitive paths |
+| Web | `http_fuzzer` | Parameter fuzzing with FUZZ marker |
+| Web | `sqli_tester` | Safe SQLi detection (25+ error patterns) |
+| Web | `xss_tester` | Reflected XSS detection (14 payloads) |
+| Exploit | `reverse_shell` | Multi-session reverse shell handler |
+| Exploit | `payload_generator` | 9 payload types across 6 languages |
+| Exploit | `exploit_runner` | Modular exploit framework |
+| Passwords | `wordlist_attack` | HTTP/FTP dictionary attack |
+| Passwords | `hash_cracker` | MD5/SHA1/SHA256 auto-detect cracker |
+| Passwords | `credential_checker` | Cross-service credential reuse |
 
 ## 🔵 Blue Team Tools (12 modules)
 
 | Category | Tool | Description |
 |----------|------|-------------|
-| **Detection** | `anomaly_detector` | Threshold-based anomaly detection |
-| | `suspicious_ip_tracker` | IP watchlist + frequency tracking |
-| | `alert_system` | Rule-based security alerting |
-| **Log Analysis** | `auth_log_parser` | Linux auth.log analysis |
-| | `web_log_parser` | Apache/Nginx attack detection |
-| | `ssh_bruteforce_detector` | SSH brute force profiling |
-| **Forensics** | `file_analyzer` | Multi-hash + entropy + magic bytes |
-| | `string_extractor` | Binary string extraction + analysis |
-| | `file_type_detector` | Extension mismatch detection |
-| **SIEM** | `log_aggregator` | Multi-source log normalization |
-| | `log_search` | Regex-based log search |
-| | `alert_generator` | Rule-based SIEM alerts |
+| Detection | `anomaly_detector` | Threshold-based anomaly detection |
+| Detection | `suspicious_ip_tracker` | IP watchlist + frequency tracking |
+| Detection | `alert_system` | Rule-based security alerting |
+| Log Analysis | `auth_log_parser` | auth.log SSH/brute-force parsing |
+| Log Analysis | `web_log_parser` | Apache/Nginx attack detection |
+| Log Analysis | `ssh_bruteforce_detector` | Attacker profiling |
+| Forensics | `file_analyzer` | Multi-hash + entropy + magic bytes |
+| Forensics | `string_extractor` | Binary strings + suspicious patterns |
+| Forensics | `file_type_detector` | Extension mismatch detection |
+| SIEM | `log_aggregator` | Multi-source log normalization |
+| SIEM | `log_search` | Regex-based log search |
+| SIEM | `alert_generator` | 6 detection rules + JSON export |
+
+## 🌐 OSINT Tools (4 modules)
+
+| Tool | Description |
+|------|-------------|
+| `email_harvester` | Scrape emails from web pages, DNS, common prefixes |
+| `social_recon` | Check username across 18 social/dev platforms |
+| `breach_checker` | HIBP API + k-anonymity password hash checking |
+| `google_dorker` | Generate 35+ Google dork queries (files, admin, errors) |
+
+## 📡 Network Security (3 modules)
+
+| Tool | Description |
+|------|-------------|
+| `packet_sniffer` | Capture & analyze traffic (tshark/tcpdump/netstat) |
+| `arp_detector` | ARP spoofing & MitM detection |
+| `dns_monitor` | DNS tunneling, DGA, and poisoning detection |
+
+## 📶 Wireless Security (2 modules)
+
+| Tool | Description |
+|------|-------------|
+| `wifi_scanner` | Scan WiFi networks, analyze encryption (Windows/Linux) |
+| `rogue_ap_detector` | Evil twin & rogue AP detection with baseline comparison |
+
+## 📊 Reporting (4 modules)
+
+| Tool | Description |
+|------|-------------|
+| `json_report` | Structured JSON with severity scoring |
+| `html_report` | Dark-themed HTML with stat cards |
+| `executive_report` | Non-technical executive summary (HTML) |
+| `compliance_report` | PCI-DSS, HIPAA, SOC2, OWASP mapping |
 
 ---
 
-## 🔧 Usage Examples
+## 🛡️ Security Features (v2.5)
 
-### Command Mode
-```bash
-# Port scan with custom range
-python main.py run scanning.port_scanner --target 10.10.10.10 -a ports=1-65535 threads=100
-
-# DNS enumeration
-python main.py run reconnaissance.dns_lookup --target example.com
-
-# Generate payloads
-python main.py run exploitation.payload_generator --target 10.0.0.1 -a port=9001
-
-# Analyze a suspicious file
-python main.py run forensics.file_analyzer --target /path/to/suspicious.exe
-
-# Parse auth logs for brute force
-python main.py run log_analysis.ssh_bruteforce_detector --target /var/log/auth.log
-
-# Save results as JSON
-python main.py run scanning.port_scanner --target 10.10.10.10 -o results.json
+### Target Scope Enforcement
+```yaml
+# config/scope.yaml
+scope:
+  enabled: true
+  allowed_ips:
+    - "10.0.0.0/8"
+    - "192.168.0.0/16"
+  allowed_domains:
+    - "*.example.com"
+  excluded_domains:
+    - "*.gov"
 ```
 
-### Pipeline Mode
-```bash
-# Quick scan pipeline (DNS → WHOIS → HTTP fingerprint → port scan → report)
-python main.py pipeline quick_scan --target example.com
-
-# Web audit pipeline (full web app security assessment)
-python main.py pipeline web_audit --target http://example.com
+### Encrypted Credential Vault
+```python
+from core.vault import get_vault
+vault = get_vault()
+vault.store("api_key", "sk-abc123", category="api")
+vault.retrieve("api_key")  # → "sk-abc123"
 ```
 
-### Interactive Shell
-```bash
-python main.py --interactive
+### Immutable Audit Trail
+Every tool execution is logged to `logs/audit/audit_YYYYMMDD.jsonl` with:
+- Timestamp, operator, tool, target, arguments
+- Result hash for integrity verification
+- Sensitive argument redaction (passwords → `***REDACTED***`)
 
-# Inside the shell:
-cybertk > list                              # List all tools
-cybertk > categories                        # Show categories
-cybertk > search sql                        # Search tools
-cybertk > run scanning.port_scanner         # Run a tool
-cybertk > scanning.port_scanner             # Shorthand
-cybertk > pipeline quick_scan               # Run pipeline
-cybertk > help                              # Show help
+### SQLite Database
+All scan results, findings, and targets are persisted in `data/cybertoolkit.db`:
+```python
+from core.database import get_db
+db = get_db()
+db.get_dashboard_stats()     # Aggregate statistics
+db.get_scans(target="x")     # Scan history
+db.get_target_history("x")   # Full target timeline
 ```
+
+### Multi-Target Campaigns
+```python
+from core.campaign import Campaign
+campaign = Campaign("Internal Audit", ["10.0.0.1", "10.0.0.2", "10.0.0.3"])
+campaign.run_tool_across_targets(port_scanner_module, max_concurrency=10)
+summary = campaign.get_summary()
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ --cov=core --cov-report=term-missing
+
+# Verify tool loading
+python -c "from core.loader import load_all; from core.registry import get_registry; load_all(quiet=True); print(f'{get_registry().tool_count()} tools loaded')"
+```
+
+CI runs automatically on push via GitHub Actions (`.github/workflows/ci.yml`).
 
 ---
 
@@ -179,7 +250,6 @@ TOOL_INFO = {
 
 def run(args):
     target = args.get("target", "")
-    # Your logic here
     return ToolResult(
         tool_name="my_tool",
         target=target,
@@ -191,7 +261,7 @@ def run(args):
     )
 ```
 
-The tool will be **auto-discovered** on next launch — no registration needed.
+The tool will be auto-discovered on next launch — no registration needed.
 
 ---
 
@@ -220,7 +290,7 @@ This framework is intended for **authorized security testing only**. Use exclusi
 - CTF competitions
 - Authorized penetration tests with written permission
 
-Unauthorized use against systems you do not own is illegal. The authors assume no liability for misuse.
+Unauthorized use against systems you do not own is **illegal**. The authors assume no liability for misuse.
 
 ---
 

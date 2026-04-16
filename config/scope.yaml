@@ -1,0 +1,39 @@
+# =============================================================================
+# CyberToolkit Pro — Scope Configuration
+# =============================================================================
+# Define authorized targets, ports, and exclusions for pentesting engagements.
+# Enable scope enforcement to prevent accidental out-of-scope testing.
+# =============================================================================
+
+scope:
+  enabled: false   # Set to true to enforce scope restrictions
+
+  # Allowed IP addresses and CIDR ranges
+  allowed_ips:
+    - "10.0.0.0/8"
+    - "172.16.0.0/12"
+    - "192.168.0.0/16"
+    # - "203.0.113.0/24"     # Example: client subnet
+
+  # Allowed domain patterns (wildcards supported)
+  allowed_domains:
+    - "*.example.com"
+    - "*.test.local"
+    # - "*.client-domain.com"
+
+  # Allowed port ranges
+  allowed_ports:
+    - "1-65535"
+    # - "80"
+    # - "443"
+    # - "1-1024"
+
+  # Explicitly excluded targets (overrides allowed)
+  excluded_ips:
+    - "10.0.0.1"        # Gateway — never scan
+    # - "192.168.1.1"   # Client's production router
+
+  excluded_domains:
+    - "*.google.com"
+    - "*.microsoft.com"
+    - "*.gov"           # Government domains
