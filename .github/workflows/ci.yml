@@ -33,10 +33,12 @@ jobs:
         pytest tests/ -v --tb=short -x
 
     - name: Verify tool loading
+      shell: bash
       run: |
-        python -c "from core.loader import load_all; from core.registry import get_registry; load_all(quiet=True); r = get_registry(); print(f'Tools loaded: {len(r.search(\"\"))}')"
+        python -c 'from core.loader import load_all; from core.registry import get_registry; load_all(quiet=True); print(f"Tools loaded: {get_registry().tool_count()}")'
 
     - name: Verify CLI help
+      shell: bash
       run: |
         python main.py --help
 
