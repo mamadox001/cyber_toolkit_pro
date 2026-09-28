@@ -25,7 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install PyYAML pytest pytest-cov
+        pip install PyYAML pytest pytest-cov cryptography
 
     - name: Run tests
       shell: bash

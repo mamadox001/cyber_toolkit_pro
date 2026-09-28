@@ -66,9 +66,10 @@ class ScopeEnforcer:
             if domain.startswith("*."):
                 base_domain = domain[2:]
                 escaped_base = base_domain.replace(".", r"\.")
-                pattern = f"^(?:.*?\.)?{escaped_base}$"
+                pattern = rf"^(?:.*?\.)?{escaped_base}$"
             else:
-                pattern = f"^{domain.replace('.', r'\.').replace('*', r'.*')}$"
+                escaped_domain = domain.replace(".", r"\.").replace("*", r".*")
+                pattern = f"^{escaped_domain}$"
             self.allowed_domains.append(re.compile(pattern, re.IGNORECASE))
 
         # Parse allowed ports
@@ -90,9 +91,10 @@ class ScopeEnforcer:
             if domain.startswith("*."):
                 base_domain = domain[2:]
                 escaped_base = base_domain.replace(".", r"\.")
-                pattern = f"^(?:.*?\.)?{escaped_base}$"
+                pattern = rf"^(?:.*?\.)?{escaped_base}$"
             else:
-                pattern = f"^{domain.replace('.', r'\.').replace('*', r'.*')}$"
+                escaped_domain = domain.replace(".", r"\.").replace("*", r".*")
+                pattern = f"^{escaped_domain}$"
             self.excluded_domains.append(re.compile(pattern, re.IGNORECASE))
 
     def check_target(self, target: str) -> tuple:
