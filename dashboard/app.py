@@ -28,7 +28,7 @@ from core.models import ToolResult
 def create_app():
     """Create and configure the FastAPI application."""
     try:
-        from fastapi import FastAPI, HTTPException
+        from fastapi import FastAPI, HTTPException, Request
         from fastapi.responses import HTMLResponse, JSONResponse
         from fastapi.staticfiles import StaticFiles
         from pydantic import BaseModel
@@ -235,6 +235,95 @@ def create_app():
                 "allowed_domains": [p.pattern for p in scope.allowed_domains],
                 "excluded_ips": [str(n) for n in scope.excluded_ips],
             }
+        except Exception as e:
+            return {"error": str(e)}
+
+    # --- MITRE ATT&CK Matrix & Coverage ---
+    @app.get("/api/mitre/matrix")
+    async def mitre_matrix():
+        """Get MITRE ATT&CK matrix columns and tool mappings."""
+        try:
+            from core.mitre import get_mitre_engine
+            return get_mitre_engine().get_matrix_view()
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/mitre/coverage")
+    async def mitre_coverage():
+        """Get MITRE ATT&CK coverage based on stored database findings."""
+        try:
+            from core.mitre import get_mitre_engine
+            from core.database import get_db
+            findings = get_db().get_findings(limit=500)
+            return get_mitre_engine().correlate_findings(findings)
+        except Exception as e:
+            return {"error": str(e)}
+
+    # --- CVE & CVSS v3.1 Engine ---
+    @app.get("/api/cve/search")
+    async def cve_search_api(q: str = ""):
+        """Search offline CVE database."""
+        try:
+            from core.cve_lookup import get_cve_engine
+            results = get_cve_engine().search(q)
+            return {"query": q, "total": len(results), "results": results}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.post("/api/cve/calculate-cvss")
+    async def cve_calculate(req: Dict[str, Any]):
+        """Calculate CVSS v3.1 base score from vector string."""
+        try:
+            from core.cve_lookup import calculate_cvss31
+            vector = req.get("vector", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H")
+            return calculate_cvss31(vector)
+        except Exception as e:
+            return {"error": str(e)}
+
+    # --- Active Defense / Canary Tokens ---
+    @app.get("/api/canary/list")
+    async def canary_list():
+        """List active canary tokens."""
+        try:
+            from core.canary import get_canary_manager
+            return {"canaries": get_canary_manager().list_canaries()}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.post("/api/canary/generate")
+    async def canary_generate(req: Dict[str, Any], request: Request):
+        """Generate a new defensive honeytoken."""
+        try:
+            from core.canary import get_canary_manager
+            ttype = req.get("token_type", "http_webhook")
+            memo = req.get("memo", "Deceptive Honeypot")
+            base_url = str(request.base_url)
+            return get_canary_manager().generate_token(token_type=ttype, memo=memo, base_url=base_url)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/canary/ping/{token_id}")
+    @app.post("/api/canary/ping/{token_id}")
+    async def canary_ping(token_id: str, request: Request):
+        """Public tripwire endpoint for canary tokens."""
+        try:
+            from core.canary import get_canary_manager
+            client_ip = request.client.host if request.client else "Unknown"
+            ua = request.headers.get("user-agent", "Unknown")
+            headers_str = str(dict(request.headers))
+            res = get_canary_manager().trigger(token_id, client_ip=client_ip, user_agent=ua, headers=headers_str)
+            if res:
+                return HTMLResponse("<html><body><h1>404 Not Found</h1></body></html>", status_code=404)
+            return JSONResponse({"status": "invalid_token"}, status_code=404)
+        except Exception as e:
+            return {"error": str(e)}
+
+    @app.get("/api/canary/hits")
+    async def canary_hits(token_id: Optional[str] = None):
+        """Retrieve canary hits and alerts."""
+        try:
+            from core.canary import get_canary_manager
+            return {"hits": get_canary_manager().get_hits(token_id)}
         except Exception as e:
             return {"error": str(e)}
 

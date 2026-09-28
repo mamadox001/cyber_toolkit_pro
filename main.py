@@ -107,6 +107,20 @@ Examples:
     plugin_remove = plugin_sub.add_parser("remove", help="Remove a plugin")
     plugin_remove.add_argument("name", help="Plugin name to remove")
 
+    # --- cve ---
+    cve_parser = subparsers.add_parser("cve", help="Search offline CVE database and calculate CVSS")
+    cve_parser.add_argument("query", nargs="?", default="", help="Software name, banner, or CVE ID")
+    cve_parser.add_argument("--vector", default="", help="CVSS v3.1 vector string to calculate")
+
+    # --- canary ---
+    canary_parser = subparsers.add_parser("canary", help="Active defense honeytokens & tripwires")
+    canary_parser.add_argument("--action", choices=["generate", "list"], default="generate", help="Action to perform")
+    canary_parser.add_argument("--type", default="http_webhook", choices=["http_webhook", "aws_keys", "git_token", "db_credential"], help="Canary token type")
+    canary_parser.add_argument("--memo", default="Deceptive Canary", help="Placement memo")
+
+    # --- mitre ---
+    subparsers.add_parser("mitre", help="Display MITRE ATT&CK matrix coverage and posture metrics")
+
     return parser.parse_args()
 
 
@@ -267,6 +281,55 @@ def cmd_plugin(args):
         output.error(f"Plugin operation failed: {e}")
 
 
+def cmd_cve(args):
+    """Handle the 'cve' subcommand."""
+    from core.cve_lookup import get_cve_engine, calculate_cvss31
+    if getattr(args, "vector", None):
+        res = calculate_cvss31(args.vector)
+        output.info(f"Vector: {res['vector']}")
+        output.info(f"Base Score: {res['base_score']} ({res['severity']})")
+        output.info(f"Impact: {res['impact']} | Exploitability: {res['exploitability']}")
+        return
+
+    engine = get_cve_engine()
+    q = getattr(args, "query", "")
+    results = engine.search(q) if q else engine.search("")
+    output.info(f"Found {len(results)} CVEs matching '{q}':\n")
+    for r in results[:8]:
+        print(f"  [{r.get('cve')}] {r.get('title')} (CVSS {r.get('base_score')} - {r.get('severity')})")
+        print(f"    Product: {r.get('product')} | CWE: {r.get('cwe')}")
+        print(f"    Remediation: {r.get('remediation')}\n")
+
+
+def cmd_canary(args):
+    """Handle the 'canary' subcommand."""
+    from core.canary import get_canary_manager
+    mgr = get_canary_manager()
+    action = getattr(args, "action", "generate")
+    if action == "list":
+        canaries = mgr.list_canaries()
+        output.info(f"Active Canary Honeytokens ({len(canaries)} total):")
+        for c in canaries:
+            print(f"  [{c['token_id']}] Type: {c['token_type']} | Memo: {c['memo']} | Triggers: {c['triggered_count']}")
+    else:
+        created = mgr.generate_token(token_type=getattr(args, "type", "http_webhook"), memo=getattr(args, "memo", "Deceptive Canary"))
+        output.success(f"Generated {created['token_type']} Canary Honeytoken [ID: {created['token_id']}]")
+        output.info(f"Payload Data: {created['payload']}")
+        output.info("Plant this decoy in sensitive directories/repos. Any access triggers immediate multi-channel alerts.")
+
+
+def cmd_mitre(args):
+    """Handle the 'mitre' subcommand."""
+    from core.mitre import get_mitre_engine
+    engine = get_mitre_engine()
+    view = engine.get_matrix_view()
+    output.info(f"MITRE Enterprise ATT&CK Matrix ({view['tactics_count']} Tactics, {view['total_techniques']} Techniques Mapped across {view['total_tools_mapped']} tools):")
+    for col in view['columns']:
+        print(f"  [{col['tactic_id']}] {col['tactic_name']} ({col['technique_count']} techniques)")
+        for t in col['techniques'][:2]:
+            print(f"      - {t['id']}: {t['name']} ({len(t['tools'])} tools)")
+
+
 def main():
     """Main entry point."""
     args = parse_args()
@@ -296,6 +359,9 @@ def main():
         "dashboard": cmd_dashboard,
         "tui": cmd_tui,
         "plugin": cmd_plugin,
+        "cve": cmd_cve,
+        "canary": cmd_canary,
+        "mitre": cmd_mitre,
     }
 
     if args.command in commands:

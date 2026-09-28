@@ -4,7 +4,7 @@
 
 A modular, extensible framework for penetration testing, security assessment, and blue team operations. Inspired by Metasploit, Burp Suite, and lightweight SIEM architectures.
 
-> **76 tools** · **17 categories** · **Plugin architecture** · **SQLite database** · **Web dashboard** · **CI/CD ready**
+> **79 tools** · **17 categories** · **MITRE ATT&CK Matrix** · **Offline CVE/CVSS Engine** · **Active Defense Canaries** · **Web Dashboard & TUI**
 
 ---
 
@@ -67,6 +67,9 @@ cyber_toolkit_pro/
 │   ├── threat_intel.py        # Threat intel (VirusTotal, AbuseIPDB, Shodan)
 │   ├── stix_exporter.py       # STIX 2.1 threat intelligence export
 │   ├── plugin_manager.py      # Remote plugin install/update/list
+│   ├── mitre.py               # MITRE ATT&CK matrix & coverage engine
+│   ├── cve_lookup.py          # Offline CVE search & CVSS v3.1 calculator
+│   ├── canary.py              # Active defense honeytoken tripwire engine
 │   └── tui.py                 # Textual terminal UI
 ├── modules/                   # Tool modules (auto-discovered)
 │   ├── reconnaissance/        # DNS, WHOIS, subdomain, tech stack, CT logs, ASN
