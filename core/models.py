@@ -34,6 +34,13 @@ class ToolCategory(Enum):
     FORENSICS = "forensics"
     SIEM = "siem"
     REPORTING = "reporting"
+    OSINT = "osint"
+    NETWORK = "network"
+    WIRELESS = "wireless"
+    CLOUD = "cloud"
+    CRYPTO = "crypto"
+    API_SECURITY = "api_security"
+    MOBILE = "mobile"
 
 
 @dataclass
@@ -112,6 +119,7 @@ class Finding:
     severity: Severity = Severity.INFO
     evidence: str = ""
     remediation: str = ""
+    target: str = ""
 
     def to_dict(self) -> dict:
         d = asdict(self)

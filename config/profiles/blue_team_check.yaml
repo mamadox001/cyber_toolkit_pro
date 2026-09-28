@@ -1,0 +1,8 @@
+# Pipeline Profile: Blue Team Security Check
+name: "Blue Team Check"
+description: "Defensive baseline check: SSL/TLS validation, headers, and container compliance"
+steps:
+  - crypto.ssl_tls_auditor
+  - crypto.certificate_analyzer
+  - reconnaissance.http_fingerprint
+  - reporting.json_report

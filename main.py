@@ -44,6 +44,11 @@ Examples:
     )
 
     parser.add_argument(
+        "--version", "-V", action="version",
+        version="CyberToolkit Pro v2.5.0"
+    )
+
+    parser.add_argument(
         "--interactive", "-i", action="store_true",
         help="Launch interactive shell mode"
     )
@@ -78,6 +83,7 @@ Examples:
     pipe_parser.add_argument("profile", help="Profile name (e.g. quick_scan)")
     pipe_parser.add_argument("--target", "-t", default="", help="Target host/IP")
     pipe_parser.add_argument("--args", "-a", nargs="*", default=[], help="Additional key=value args")
+    pipe_parser.add_argument("--dry-run", action="store_true", help="Show pipeline steps without executing")
 
     # --- profiles ---
     subparsers.add_parser("profiles", help="List available pipeline profiles")
@@ -86,6 +92,20 @@ Examples:
     dash_parser = subparsers.add_parser("dashboard", help="Start web dashboard")
     dash_parser.add_argument("--host", default="", help="Dashboard host")
     dash_parser.add_argument("--port", "-p", type=int, default=0, help="Dashboard port")
+
+    # --- tui ---
+    subparsers.add_parser("tui", help="Launch immersive Hacker TUI (Textual)")
+
+    # --- plugin ---
+    plugin_parser = subparsers.add_parser("plugin", help="Manage plugins")
+    plugin_sub = plugin_parser.add_subparsers(dest="plugin_action", help="Plugin actions")
+    plugin_install = plugin_sub.add_parser("install", help="Install a plugin from URL")
+    plugin_install.add_argument("url", help="Plugin Git URL or path")
+    plugin_sub.add_parser("list", help="List installed plugins")
+    plugin_update = plugin_sub.add_parser("update", help="Update a plugin")
+    plugin_update.add_argument("name", nargs="?", default="", help="Plugin name (all if omitted)")
+    plugin_remove = plugin_sub.add_parser("remove", help="Remove a plugin")
+    plugin_remove.add_argument("name", help="Plugin name to remove")
 
     return parser.parse_args()
 
@@ -183,7 +203,8 @@ def cmd_pipeline(args):
     """Handle the 'pipeline' subcommand."""
     tool_args = {"target": args.target}
     tool_args.update(_parse_extra_args(args.args))
-    run_profile(args.profile, tool_args)
+    dry_run = getattr(args, "dry_run", False)
+    run_profile(args.profile, tool_args, dry_run=dry_run)
 
 
 def cmd_profiles(args):
@@ -210,6 +231,40 @@ def cmd_dashboard(args):
         output.error("Dashboard dependencies not installed. Run: pip install fastapi uvicorn")
     except Exception as e:
         output.error(f"Failed to start dashboard: {e}")
+
+
+def cmd_tui(args):
+    """Handle the 'tui' subcommand."""
+    try:
+        from core.tui import start_tui
+        start_tui()
+    except ImportError as e:
+        output.error(f"TUI dependencies not installed: {e}")
+        output.info("Run: pip install textual rich")
+    except Exception as e:
+        output.error(f"Failed to start TUI: {e}")
+
+
+def cmd_plugin(args):
+    """Handle the 'plugin' subcommand."""
+    try:
+        from core.plugin_manager import PluginManager
+        pm = PluginManager()
+        action = getattr(args, "plugin_action", None)
+        if action == "install":
+            pm.install(args.url)
+        elif action == "list":
+            pm.list_plugins()
+        elif action == "update":
+            pm.update(getattr(args, "name", ""))
+        elif action == "remove":
+            pm.remove(args.name)
+        else:
+            output.info("Usage: python main.py plugin {install|list|update|remove}")
+    except ImportError:
+        output.error("Plugin manager not available")
+    except Exception as e:
+        output.error(f"Plugin operation failed: {e}")
 
 
 def main():
@@ -239,6 +294,8 @@ def main():
         "pipeline": cmd_pipeline,
         "profiles": cmd_profiles,
         "dashboard": cmd_dashboard,
+        "tui": cmd_tui,
+        "plugin": cmd_plugin,
     }
 
     if args.command in commands:

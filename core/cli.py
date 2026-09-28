@@ -156,6 +156,21 @@ def interactive_shell():
         elif command == "categories":
             _cmd_categories()
 
+        elif command == "history":
+            _cmd_history(arg)
+
+        elif command == "export":
+            _cmd_export(arg)
+
+        elif command == "target":
+            _cmd_target(arg)
+
+        elif command == "vault":
+            _cmd_vault(arg)
+
+        elif command == "diff":
+            _cmd_diff(arg)
+
         elif "." in command:
             # Direct tool invocation  e.g. "scanning.port_scanner"
             _cmd_run(command)
@@ -175,6 +190,11 @@ def _show_help():
         ["<tool.path>", "Shorthand: run a tool directly"],
         ["pipeline <name>", "Run a pipeline profile"],
         ["profiles", "List available pipeline profiles"],
+        ["history [N]", "Show last N scans (default 20)"],
+        ["export <scan_id>", "Export scan result to JSON"],
+        ["target [list|add|notes]", "Manage targets"],
+        ["vault [list|set|get|del]", "Manage credential vault"],
+        ["diff <id1> <id2>", "Compare two scan results"],
         ["clear", "Clear screen"],
         ["help", "Show this help"],
         ["exit", "Exit the shell"],
@@ -205,6 +225,9 @@ def _category_icon(cat: str) -> str:
         "forensics":      "🔬",
         "siem":           "📊",
         "reporting":      "📝",
+        "osint":          "🕵️",
+        "network":        "🔌",
+        "wireless":       "📶",
     }
     return icons.get(cat, "🔧")
 
@@ -356,3 +379,189 @@ def _cmd_profiles():
 def interactive():
     """Legacy entry point — redirects to new shell."""
     interactive_shell()
+
+
+# ---------------------------------------------------------------------------
+# New CLI commands: history, export, target, vault, diff
+# ---------------------------------------------------------------------------
+
+def _cmd_history(arg: str):
+    """Show recent scan history from the database."""
+    try:
+        from core.database import get_db
+        limit = int(arg) if arg.strip().isdigit() else 20
+        db = get_db()
+        scans = db.get_scans(limit=limit)
+
+        if not scans:
+            output.info("No scan history found")
+            return
+
+        output.section(f"Scan History (last {limit})")
+        rows = []
+        for s in scans:
+            sid = s.get("scan_id", "?")[:20]
+            tool = s.get("tool_name", "?")
+            target = s.get("target", "?")[:25]
+            status = s.get("status", "?")
+            date = s.get("created_at", "?")[:19]
+            findings = s.get("findings_count", 0)
+            rows.append([sid, tool, target, status, str(findings), date])
+        output.table(["Scan ID", "Tool", "Target", "Status", "Findings", "Date"], rows)
+    except Exception as e:
+        output.error(f"Failed to load history: {e}")
+
+
+def _cmd_export(arg: str):
+    """Export a scan result to JSON."""
+    if not arg.strip():
+        output.warning("Usage: export <scan_id>")
+        output.info("Use 'history' to see available scan IDs")
+        return
+
+    try:
+        from core.database import get_db
+        import json
+        db = get_db()
+        scan_id = arg.strip()
+        scan = db.get_scan(scan_id)
+
+        if not scan:
+            output.error(f"Scan '{scan_id}' not found")
+            return
+
+        findings = db.get_findings(scan_id=scan_id)
+        scan["findings_detail"] = findings
+
+        filename = f"reports/{scan_id}.json"
+        import os
+        os.makedirs("reports", exist_ok=True)
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(scan, f, indent=2, default=str)
+        output.success(f"Exported to {filename}")
+    except Exception as e:
+        output.error(f"Export failed: {e}")
+
+
+def _cmd_target(arg: str):
+    """Manage targets — list, add, or add notes."""
+    try:
+        from core.database import get_db
+        db = get_db()
+
+        parts = arg.strip().split(maxsplit=1)
+        action = parts[0] if parts else "list"
+
+        if action == "list" or not action:
+            targets = db.get_targets()
+            if not targets:
+                output.info("No targets recorded yet")
+                return
+            output.section("Known Targets")
+            rows = []
+            for t in targets:
+                rows.append([
+                    t.get("target", "?"),
+                    t.get("target_type", "?"),
+                    str(t.get("scan_count", 0)),
+                    str(t.get("total_findings", 0)),
+                    t.get("last_seen", "?")[:19],
+                ])
+            output.table(["Target", "Type", "Scans", "Findings", "Last Seen"], rows)
+
+        elif action == "add":
+            target_val = parts[1] if len(parts) > 1 else _prompt("Target IP/hostname")
+            if target_val:
+                # Just querying will auto-create via next scan, show info
+                output.success(f"Target '{target_val}' noted. Run a scan to register it.")
+
+        elif action == "notes":
+            target_val = parts[1] if len(parts) > 1 else _prompt("Target")
+            if target_val:
+                history = db.get_target_history(target_val)
+                output.section(f"Target: {target_val}")
+                output.info(f"Total scans: {len(history.get('scans', []))}")
+                output.info(f"Total findings: {len(history.get('findings', []))}")
+        else:
+            output.warning("Usage: target [list|add|notes] [target]")
+    except Exception as e:
+        output.error(f"Target command failed: {e}")
+
+
+def _cmd_vault(arg: str):
+    """Manage the credential vault."""
+    try:
+        from core.vault import get_vault
+        vault = get_vault()
+
+        parts = arg.strip().split(maxsplit=2)
+        action = parts[0] if parts else "list"
+
+        if action == "list":
+            category = parts[1] if len(parts) > 1 else ""
+            keys = vault.list_keys(category=category)
+            if not keys:
+                output.info("Vault is empty")
+                return
+            output.section("Credential Vault")
+            rows = [[k["key"], k.get("category", ""), k.get("stored_at", "")[:19]] for k in keys]
+            output.table(["Key", "Category", "Stored At"], rows)
+
+        elif action == "set":
+            key = parts[1] if len(parts) > 1 else _prompt("Key name")
+            value = _prompt(f"Value for '{key}'")
+            category = _prompt("Category", "general")
+            if key and value:
+                vault.store(key, value, category=category)
+                output.success(f"Stored '{key}' in vault")
+
+        elif action == "get":
+            key = parts[1] if len(parts) > 1 else _prompt("Key name")
+            value = vault.retrieve(key)
+            if value:
+                output.info(f"{key}: {value}")
+            else:
+                output.warning(f"Key '{key}' not found")
+
+        elif action in ("del", "delete"):
+            key = parts[1] if len(parts) > 1 else _prompt("Key to delete")
+            if vault.delete(key):
+                output.success(f"Deleted '{key}'")
+            else:
+                output.warning(f"Key '{key}' not found")
+
+        elif action == "found":
+            creds = vault.get_found_credentials()
+            if not creds:
+                output.info("No found credentials stored")
+                return
+            output.section("Found Credentials")
+            rows = []
+            for c in creds:
+                rows.append([
+                    c.get("target", "?"), c.get("service", "?"),
+                    c.get("username", "?"), c.get("source_tool", "?"),
+                ])
+            output.table(["Target", "Service", "Username", "Source Tool"], rows)
+
+        else:
+            output.warning("Usage: vault [list|set|get|del|found] [key] [value]")
+    except Exception as e:
+        output.error(f"Vault command failed: {e}")
+
+
+def _cmd_diff(arg: str):
+    """Compare two scan results."""
+    parts = arg.strip().split()
+    if len(parts) < 2:
+        output.warning("Usage: diff <scan_id_old> <scan_id_new>")
+        output.info("Use 'history' to see available scan IDs")
+        return
+
+    try:
+        from core.differ import get_differ
+        differ = get_differ()
+        result = differ.compare_scans(parts[0], parts[1])
+        differ.print_diff(result)
+    except Exception as e:
+        output.error(f"Diff failed: {e}")

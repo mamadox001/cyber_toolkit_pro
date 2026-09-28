@@ -63,9 +63,13 @@ class ScopeEnforcer:
 
         # Parse allowed domains
         for domain in scope.get("allowed_domains", []):
-            # Convert wildcard patterns to regex
-            pattern = domain.replace(".", r"\.").replace("*", r".*")
-            self.allowed_domains.append(re.compile(f"^{pattern}$", re.IGNORECASE))
+            if domain.startswith("*."):
+                base_domain = domain[2:]
+                escaped_base = base_domain.replace(".", r"\.")
+                pattern = f"^(?:.*?\.)?{escaped_base}$"
+            else:
+                pattern = f"^{domain.replace('.', r'\.').replace('*', r'.*')}$"
+            self.allowed_domains.append(re.compile(pattern, re.IGNORECASE))
 
         # Parse allowed ports
         for port_spec in scope.get("allowed_ports", []):
@@ -83,8 +87,13 @@ class ScopeEnforcer:
                 pass
 
         for domain in scope.get("excluded_domains", []):
-            pattern = domain.replace(".", r"\.").replace("*", r".*")
-            self.excluded_domains.append(re.compile(f"^{pattern}$", re.IGNORECASE))
+            if domain.startswith("*."):
+                base_domain = domain[2:]
+                escaped_base = base_domain.replace(".", r"\.")
+                pattern = f"^(?:.*?\.)?{escaped_base}$"
+            else:
+                pattern = f"^{domain.replace('.', r'\.').replace('*', r'.*')}$"
+            self.excluded_domains.append(re.compile(pattern, re.IGNORECASE))
 
     def check_target(self, target: str) -> tuple:
         """

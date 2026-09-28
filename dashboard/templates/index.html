@@ -1,358 +1,2118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CyberToolkit Pro — Dashboard</title>
-<style>
-  :root {
-    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2236;
-    --text: #e2e8f0; --text-dim: #64748b; --accent: #38bdf8;
-    --accent2: #818cf8; --border: #1e293b; --success: #22c55e;
-    --warning: #eab308; --danger: #ef4444; --radius: 10px;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--text); min-height: 100vh;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberToolkit Pro — Next-Gen Security Dashboard</title>
 
-  /* --- Header --- */
-  .header {
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-    border-bottom: 1px solid var(--border); padding: 1rem 2rem;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .header h1 { font-size: 1.3rem; color: var(--accent); }
-  .header h1 span { color: var(--accent2); }
-  .header .status { font-size: 0.8rem; color: var(--success); }
-  .header .status::before { content: "●"; margin-right: 0.3rem; }
+  <!-- Google Fonts with fallbacks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-  /* --- Layout --- */
-  .container { display: flex; height: calc(100vh - 56px); }
-  .sidebar {
-    width: 280px; background: var(--surface); border-right: 1px solid var(--border);
-    overflow-y: auto; flex-shrink: 0;
-  }
-  .main { flex: 1; overflow-y: auto; padding: 1.5rem; }
+  <style>
+    /* =========================================================================
+       CyberToolkit Pro — Self-Contained Cyberpunk Glassmorphic Engine
+       ========================================================================= */
+    :root {
+      --bg: #060913;
+      --bg-card: rgba(13, 19, 36, 0.75);
+      --bg-card-hover: rgba(22, 33, 62, 0.9);
+      --bg-glass: rgba(10, 15, 30, 0.85);
+      --surface: #0c1222;
+      --surface2: #141f38;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-bright: rgba(0, 240, 255, 0.35);
 
-  /* --- Sidebar --- */
-  .sidebar-section { padding: 0.5rem 0; }
-  .sidebar-title {
-    padding: 0.5rem 1rem; font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--text-dim); font-weight: 600;
-  }
-  .category-btn {
-    display: flex; align-items: center; gap: 0.5rem; width: 100%;
-    padding: 0.6rem 1rem; border: none; background: none; color: var(--text);
-    cursor: pointer; font-size: 0.85rem; text-align: left; transition: all 0.15s;
-  }
-  .category-btn:hover { background: var(--surface2); }
-  .category-btn.active { background: var(--surface2); color: var(--accent); border-left: 3px solid var(--accent); }
-  .category-icon { font-size: 1rem; width: 24px; text-align: center; }
-  .category-count {
-    margin-left: auto; background: var(--surface2); padding: 0.1rem 0.5rem;
-    border-radius: 10px; font-size: 0.7rem; color: var(--text-dim);
-  }
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
 
-  /* --- Tool Cards --- */
-  .tool-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1rem;
-  }
-  .tool-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 1.2rem; cursor: pointer; transition: all 0.2s;
-  }
-  .tool-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(56,189,248,0.1); }
-  .tool-card h3 { font-size: 0.95rem; color: var(--accent); margin-bottom: 0.3rem; }
-  .tool-card p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.4; }
-  .tool-card .path { font-size: 0.7rem; color: var(--accent2); font-family: monospace; margin-top: 0.5rem; }
+      /* Cyber Neon Accents */
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.35);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.35);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.35);
+      --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.35);
+      --crimson: #ff0055;
+      --crimson-glow: rgba(255, 0, 85, 0.35);
+      --blue: #3b82f6;
 
-  /* --- Run Panel --- */
-  .run-panel {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
-    display: none;
-  }
-  .run-panel.active { display: block; }
-  .run-panel h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 1rem; }
-  .form-group { margin-bottom: 1rem; }
-  .form-group label {
-    display: block; font-size: 0.8rem; color: var(--text-dim);
-    margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em;
-  }
-  .form-group input {
-    width: 100%; padding: 0.6rem 0.8rem; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 6px; color: var(--text); font-size: 0.9rem; outline: none;
-    transition: border-color 0.2s;
-  }
-  .form-group input:focus { border-color: var(--accent); }
-  .btn {
-    padding: 0.6rem 1.5rem; border: none; border-radius: 6px; cursor: pointer;
-    font-size: 0.85rem; font-weight: 600; transition: all 0.15s;
-  }
-  .btn-primary { background: var(--accent); color: #0f172a; }
-  .btn-primary:hover { background: #7dd3fc; }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .btn-secondary:hover { border-color: var(--accent); }
+      --radius: 14px;
+      --radius-sm: 8px;
+      --radius-pill: 9999px;
+      --transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-  /* --- Results --- */
-  .results {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.5rem; display: none;
-  }
-  .results.active { display: block; }
-  .results h2 { color: var(--accent); font-size: 1.1rem; margin-bottom: 1rem; }
-  .results pre {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-    padding: 1rem; font-size: 0.8rem; overflow-x: auto; max-height: 500px;
-    overflow-y: auto; color: #a5f3fc; font-family: 'Cascadia Code', 'Fira Code', monospace;
-  }
-  .finding {
-    padding: 0.6rem; margin-bottom: 0.5rem; border-radius: 6px;
-    border-left: 3px solid var(--warning); background: rgba(234,179,8,0.05);
-  }
-  .finding.critical { border-color: var(--danger); background: rgba(239,68,68,0.05); }
-  .finding.high { border-color: #f97316; background: rgba(249,115,22,0.05); }
-  .finding .title { font-weight: 600; font-size: 0.85rem; }
-  .finding .desc { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.2rem; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  .stat-bar {
-    display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;
-  }
-  .stat {
-    background: var(--bg); padding: 0.5rem 1rem; border-radius: 6px;
-    border: 1px solid var(--border);
-  }
-  .stat .num { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
-  .stat .label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
 
-  .loading { display: none; text-align: center; padding: 2rem; color: var(--text-dim); }
-  .loading.active { display: block; }
-  .spinner {
-    display: inline-block; width: 30px; height: 30px; border: 3px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+    /* Fixed Canvas Background - immune to flow push */
+    #bg-canvas {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      pointer-events: none !important;
+      z-index: -2 !important;
+    }
 
-  .search-box {
-    padding: 0.5rem 1rem; margin: 0.5rem; background: var(--bg);
-    border: 1px solid var(--border); border-radius: 6px;
-    color: var(--text); font-size: 0.85rem; width: calc(100% - 1rem); outline: none;
-  }
-  .search-box:focus { border-color: var(--accent); }
-</style>
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.4;
+      animation: floatOrb 18s ease-in-out infinite alternate;
+    }
+
+    .glow-1 {
+      top: -10%;
+      left: -5%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.25), transparent 70%);
+    }
+
+    .glow-2 {
+      bottom: -15%;
+      right: -5%;
+      width: 55vw;
+      height: 55vw;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.25), transparent 70%);
+      animation-delay: -9s;
+    }
+
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, 30px) scale(1.08); }
+      100% { transform: translate(-30px, 40px) scale(0.95); }
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(6, 9, 19, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.25); border-radius: var(--radius-pill); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+    /* Header */
+    .header {
+      position: relative;
+      z-index: 100;
+      height: 72px;
+      background: rgba(6, 10, 22, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00f0ff 0%, #7928ca 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      position: relative;
+    }
+
+    .logo-badge::after {
+      content: '';
+      position: absolute;
+      inset: 1px;
+      background: #060a16;
+      border-radius: 11px;
+      z-index: 1;
+    }
+
+    .logo-icon {
+      position: relative;
+      z-index: 2;
+      font-size: 1.3rem;
+      color: var(--cyan);
+      filter: drop-shadow(0 0 8px var(--cyan));
+    }
+
+    .brand-text h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-text .version-tag {
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.15rem 0.45rem;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      border-radius: var(--radius-pill);
+      -webkit-text-fill-color: var(--cyan);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 0.3rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 1.1rem;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: var(--transition);
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(168, 85, 247, 0.2) 100%);
+      color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25), inset 0 0 10px rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+    }
+
+    /* Actions */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--emerald);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulseDot 2s infinite;
+    }
+
+    @keyframes pulseDot {
+      0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .btn-quick-run {
+      background: linear-gradient(135deg, var(--cyan) 0%, #0284c7 100%);
+      color: #060913;
+      border: none;
+      padding: 0.45rem 1.1rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: var(--transition);
+      box-shadow: 0 0 18px var(--cyan-glow);
+    }
+
+    .btn-quick-run:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 24px rgba(0, 240, 255, 0.6);
+      filter: brightness(1.1);
+    }
+
+    /* Main View Area */
+    .view-container {
+      position: relative;
+      height: calc(100vh - 72px);
+      width: 100%;
+      z-index: 10;
+    }
+
+    .view {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    .view.active {
+      display: flex;
+    }
+
+    /* Explorer View */
+    .explorer-layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 300px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 0.7rem 0.9rem 0.7rem 2.4rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-box:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+    }
+
+    .category-group-title {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+
+    .category-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-align: left;
+      transition: var(--transition);
+      margin-bottom: 0.2rem;
+    }
+
+    .category-btn:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      transform: translateX(3px);
+    }
+
+    .category-btn.active {
+      background: linear-gradient(90deg, rgba(0, 240, 255, 0.12) 0%, rgba(168, 85, 247, 0.05) 100%);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+      font-weight: 600;
+    }
+
+    .category-icon {
+      font-size: 1.05rem;
+      width: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .category-count {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      transition: var(--transition);
+    }
+
+    .category-btn.active .category-count {
+      background: rgba(0, 240, 255, 0.2);
+      color: var(--cyan);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      position: relative;
+    }
+
+    /* Top Hero HUD */
+    .hud-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .hud-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .hud-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .hud-card:hover {
+      border-color: rgba(0, 240, 255, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 240, 255, 0.1);
+    }
+
+    .hud-card:hover::before { opacity: 1; }
+
+    .hud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .hud-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    .hud-icon { font-size: 1.25rem; }
+
+    .hud-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 0.3rem;
+    }
+
+    .hud-sub {
+      font-size: 0.75rem;
+      color: var(--emerald);
+      margin-top: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .count-badge {
+      font-size: 0.75rem;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-pill);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Tool Grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+      padding-bottom: 4rem;
+    }
+
+    .tool-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 170px;
+      transition: var(--transition);
+    }
+
+    .tool-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(0, 240, 255, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.15);
+    }
+
+    .tool-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .tool-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      transition: var(--transition);
+    }
+
+    .tool-card:hover h3 { color: var(--cyan); }
+
+    .category-tag {
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .tag-cloud { background: rgba(0, 240, 255, 0.12); color: var(--cyan); border: 1px solid rgba(0, 240, 255, 0.3); }
+    .tag-crypto { background: rgba(245, 158, 11, 0.12); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .tag-api_security { background: rgba(168, 85, 247, 0.12); color: var(--purple); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .tag-mobile { background: rgba(255, 0, 85, 0.12); color: var(--crimson); border: 1px solid rgba(255, 0, 85, 0.3); }
+    .tag-web { background: rgba(16, 185, 129, 0.12); color: var(--emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-reconnaissance { background: rgba(59, 130, 246, 0.12); color: var(--blue); border: 1px solid rgba(59, 130, 246, 0.3); }
+    .tag-default { background: rgba(148, 163, 184, 0.12); color: var(--text-muted); border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    .tool-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .tool-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.75rem;
+    }
+
+    .tool-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    .btn-launch-inline {
+      background: transparent;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      opacity: 0.85;
+      transition: var(--transition);
+    }
+
+    .tool-card:hover .btn-launch-inline {
+      background: var(--cyan);
+      color: #060913;
+      opacity: 1;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    /* Execution Drawer */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 16, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .run-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 580px;
+      max-width: 90vw;
+      height: 100vh;
+      background: #090e1d;
+      border-left: 1px solid rgba(0, 240, 255, 0.3);
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.15);
+      z-index: 210;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .run-drawer.active { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.6);
+    }
+
+    .drawer-header h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-close-drawer {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-close-drawer:hover {
+      background: rgba(255, 0, 85, 0.2);
+      color: var(--crimson);
+      border-color: var(--crimson);
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .tool-meta-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tool-meta-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .tool-meta-path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--cyan);
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+
+    .form-group label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    }
+
+    .btn-primary {
+      padding: 0.85rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--cyan) 0%, #0284c7 100%);
+      color: #060913;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 0 20px var(--cyan-glow);
+      transition: var(--transition);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+      transform: translateY(-1px);
+    }
+
+    /* Radar Loading */
+    .loading-cyber {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 0;
+    }
+
+    .loading-cyber.active { display: flex; }
+
+    .cyber-radar {
+      width: 60px;
+      height: 60px;
+      border: 2px solid rgba(0, 240, 255, 0.2);
+      border-top: 2px solid var(--cyan);
+      border-radius: 50%;
+      animation: spinRadar 1s linear infinite;
+      box-shadow: 0 0 20px var(--cyan-glow);
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spinRadar {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Results */
+    .results-container { display: none; margin-top: 1.5rem; }
+    .results-container.active { display: block; }
+
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat-pill {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .stat-pill .val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+
+    .stat-pill .lbl {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 0.2rem;
+    }
+
+    .finding-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cyan);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .finding-card.critical { border-left-color: var(--crimson); background: rgba(255, 0, 85, 0.05); }
+    .finding-card.high { border-left-color: var(--amber); background: rgba(245, 158, 11, 0.05); }
+    .finding-card.medium { border-left-color: var(--purple); }
+
+    .finding-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .finding-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 0.5rem;
+    }
+
+    .finding-remed {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--emerald);
+      border-left: 2px solid var(--emerald);
+    }
+
+    .raw-json-box {
+      background: #040711;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #7dd3fc;
+      margin-top: 1rem;
+    }
+
+    /* Pipelines View */
+    .pipelines-container {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 100%;
+      width: 100%;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding-bottom: 3rem;
+    }
+
+    .profile-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 180px;
+    }
+
+    .profile-card:hover {
+      border-color: rgba(168, 85, 247, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(168, 85, 247, 0.15);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .profile-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(0, 240, 255, 0.1));
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .btn-run-profile {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--purple) 0%, #7c3aed 100%);
+      color: #fff;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      box-shadow: 0 0 15px var(--purple-glow);
+      transition: var(--transition);
+      margin-top: 1rem;
+    }
+
+    .btn-run-profile:hover { filter: brightness(1.15); }
+
+    /* 3D Attack Surface Container & HUD */
+    #mapContainer {
+      width: 100%;
+      height: 100%;
+      background: #04060e;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .map-hud {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      z-index: 20;
+      background: rgba(10, 15, 30, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem 1.1rem;
+      pointer-events: none;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .map-hud-title {
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.35rem;
+    }
+
+    .map-hud-stat {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .map-controls-panel {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      z-index: 20;
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(10, 15, 30, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 0.35rem 0.65rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Kill-Chain Visual Graph Builder */
+    #wfContainer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(13, 19, 36, 0.6) 0%, #030611 100%);
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .wf-toolbar {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      background: rgba(10, 15, 30, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-pill);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    }
+
+    .wf-toolbar-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: var(--transition);
+    }
+
+    .wf-toolbar-btn:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      transform: translateY(-1px);
+    }
+
+    .wf-node {
+      position: absolute;
+      width: 220px;
+      background: rgba(13, 19, 36, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.05);
+      z-index: 10;
+      transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      user-select: none;
+    }
+
+    .wf-node:hover {
+      border-color: rgba(0, 240, 255, 0.6);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 240, 255, 0.25);
+    }
+
+    .wf-node.type-target { border-left: 4px solid var(--emerald); }
+    .wf-node.type-scanner { border-left: 4px solid var(--cyan); }
+    .wf-node.type-exploiter { border-left: 4px solid var(--crimson); }
+    .wf-node.type-reporter { border-left: 4px solid var(--purple); }
+
+    .wf-header {
+      padding: 0.75rem 0.9rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    .wf-header:active { cursor: grabbing; }
+
+    .wf-body {
+      padding: 0.65rem 0.9rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      position: relative;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wf-port {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #060913;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: crosshair;
+      transition: var(--transition);
+      z-index: 15;
+    }
+
+    .wf-port:hover {
+      transform: translateY(-50%) scale(1.35);
+      background: var(--cyan);
+      box-shadow: 0 0 16px var(--cyan);
+    }
+
+    .wf-port.wf-in {
+      left: -7px;
+      border-color: #38bdf8;
+    }
+
+    .wf-port.wf-out {
+      right: -7px;
+      border-color: #a855f7;
+      box-shadow: 0 0 8px var(--purple-glow);
+    }
+
+    .wf-port.wf-out:hover {
+      background: var(--purple);
+      box-shadow: 0 0 16px var(--purple);
+    }
+
+    .wf-delete {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 20px;
+      height: 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .wf-delete:hover {
+      color: var(--crimson);
+      background: rgba(255, 0, 85, 0.15);
+    }
+
+    #wf-context-menu {
+      position: absolute;
+      background: rgba(10, 15, 30, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-bright);
+      border-radius: 10px;
+      padding: 0.4rem;
+      min-width: 180px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.2);
+      z-index: 100;
+    }
+
+    .menu-item {
+      padding: 0.5rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .menu-item:hover {
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--cyan);
+    }
+  </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>⬡ Cyber<span>Toolkit</span> Pro</h1>
-  <div class="status" id="status">Loading...</div>
-</div>
+  <!-- Background Canvas and Ambient Orbs -->
+  <canvas id="bg-canvas" style="position:fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:-2;"></canvas>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
-<div class="container">
-  <div class="sidebar">
-    <input type="text" class="search-box" placeholder="Search tools..." id="searchBox" oninput="filterTools()">
-    <div class="sidebar-section" id="categoryList"></div>
-  </div>
-
-  <div class="main">
-    <div class="run-panel" id="runPanel">
-      <h2 id="toolTitle"></h2>
-      <p id="toolDesc" style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem;"></p>
-      <div id="argsForm"></div>
-      <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-        <button class="btn btn-primary" onclick="runTool()">▶ Execute</button>
-        <button class="btn btn-secondary" onclick="closePanel()">Cancel</button>
+  <!-- Top Navigation Header -->
+  <header class="header">
+    <div class="brand" onclick="switchTab('explorer')">
+      <div class="logo-badge">
+        <span class="logo-icon">⬡</span>
+      </div>
+      <div class="brand-text">
+        <h1>CYBER<span>TOOLKIT</span> PRO <span class="version-tag">v2.5.0</span></h1>
       </div>
     </div>
 
-    <div class="loading" id="loading"><div class="spinner"></div><p style="margin-top:0.5rem">Executing...</p></div>
+    <!-- Nav Tabs -->
+    <nav class="tabs">
+      <button class="tab-btn active" id="tab-explorer" onclick="switchTab('explorer', this)">
+        <span>⚡</span> Tools Explorer
+      </button>
+      <button class="tab-btn" id="tab-pipelines" onclick="switchTab('pipelines', this)">
+        <span>🚀</span> Pipelines
+      </button>
+      <button class="tab-btn" id="tab-map" onclick="switchTab('map', this)">
+        <span>🌐</span> 3D Surface
+      </button>
+      <button class="tab-btn" id="tab-builder" onclick="switchTab('builder', this)">
+        <span>🛠️</span> Kill-Chain
+      </button>
+    </nav>
 
-    <div class="results" id="resultsPanel">
-      <h2>Results</h2>
-      <div class="stat-bar" id="statBar"></div>
-      <div id="findingsContainer"></div>
-      <pre id="resultsJson"></pre>
+    <!-- Header Right Actions -->
+    <div class="header-actions">
+      <div class="status-indicator">
+        <span class="pulse-dot"></span>
+        <span id="systemStatus">76 Tools Live</span>
+      </div>
+      <button class="btn-quick-run" onclick="openQuickScan()">
+        <span>🎯</span> Quick Scan
+      </button>
+      <a href="/docs" target="_blank" style="text-decoration:none;">
+        <button class="tab-btn" style="border:1px solid var(--border);">API Docs</button>
+      </a>
+    </div>
+  </header>
+
+  <!-- Viewport Area -->
+  <main class="view-container">
+
+    <!-- VIEW 1: Tools Explorer -->
+    <section id="explorerView" class="view active">
+      <div class="explorer-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <div class="search-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-box" placeholder="Search 76 security tools..." id="searchBox" oninput="filterTools()">
+            </div>
+          </div>
+          <div class="sidebar-scroll">
+            <div class="category-group-title">Modules & Categories</div>
+            <div id="categoryList">
+              <!-- Dynamically populated categories -->
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Explorer Content -->
+        <div class="main-content">
+          <!-- Hero HUD / Metrics -->
+          <div class="hud-grid">
+            <div class="hud-card">
+              <div class="hud-header">
+                <span class="hud-title">Arsenal Capacity</span>
+                <span class="hud-icon">🛡️</span>
+              </div>
+              <div class="hud-value" id="hudTotalTools">76 <span style="font-size:0.9rem; color:var(--cyan);">Tools</span></div>
+              <div class="hud-sub">● 100% Modules Verified</div>
+            </div>
+
+            <div class="hud-card">
+              <div class="hud-header">
+                <span class="hud-title">Domains & Categories</span>
+                <span class="hud-icon">🗂️</span>
+              </div>
+              <div class="hud-value" id="hudCategories">17 <span style="font-size:0.9rem; color:var(--purple);">Categories</span></div>
+              <div class="hud-sub" style="color:var(--purple);">Cloud · Crypto · API · Mobile</div>
+            </div>
+
+            <div class="hud-card">
+              <div class="hud-header">
+                <span class="hud-title">Security Pipelines</span>
+                <span class="hud-icon">⚡</span>
+              </div>
+              <div class="hud-value">8 <span style="font-size:0.9rem; color:var(--amber);">Profiles</span></div>
+              <div class="hud-sub" style="color:var(--amber);">Automated Chaining</div>
+            </div>
+
+            <div class="hud-card">
+              <div class="hud-header">
+                <span class="hud-title">Telemetry & Audit</span>
+                <span class="hud-icon">📊</span>
+              </div>
+              <div class="hud-value" id="hudTotalScans">Active <span style="font-size:0.9rem; color:var(--emerald);">Engine</span></div>
+              <div class="hud-sub">● SQLite DB + Vault Online</div>
+            </div>
+          </div>
+
+          <!-- Section Controls -->
+          <div class="section-header">
+            <div class="section-title">
+              <span id="currentCategoryLabel">All Security Tools</span>
+              <span class="count-badge" id="toolsCountBadge">76</span>
+            </div>
+          </div>
+
+          <!-- Tool Cards Grid -->
+          <div class="tool-grid" id="toolGrid">
+            <!-- Rendered tool cards -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: Pipelines Command Center -->
+    <section id="pipelinesView" class="view">
+      <div class="pipelines-container">
+        <div class="section-header">
+          <div class="section-title">
+            <span>Automated Pipeline Profiles</span>
+            <span class="count-badge">8 Workflows</span>
+          </div>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">
+          Run end-to-end chained security audits across reconnaissance, vulnerability assessment, cryptography, and reporting with one click.
+        </p>
+
+        <div class="profile-grid" id="profileGrid">
+          <!-- Dynamically populated profiles -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: 3D Network Map -->
+    <section id="mapView" class="view" style="position:relative;">
+      <div class="map-hud">
+        <div class="map-hud-title">3D Attack Surface Grid</div>
+        <div class="map-hud-stat" id="mapHudTargetCount">Perimeter Radar Active</div>
+        <div style="font-size:0.75rem; color:var(--emerald); margin-top:0.25rem;">● WebGL Telemetry Engine Online</div>
+      </div>
+      <div class="map-controls-panel">
+        <button class="wf-toolbar-btn" onclick="if(window.map3d) window.map3d.autoRotate = !window.map3d.autoRotate;">
+          <span>⚡</span> Auto Orbit
+        </button>
+        <button class="wf-toolbar-btn" onclick="if(window.map3d) { window.map3d.radius=420; window.map3d.theta=0.5; window.map3d.phi=0.45; window.map3d.updateCameraPos(); }">
+          <span>🔄</span> Reset Camera
+        </button>
+        <button class="wf-toolbar-btn" onclick="if(window.map3d) window.map3d.fetchTargets();">
+          <span>📡</span> Refresh Targets
+        </button>
+      </div>
+      <div id="mapContainer"></div>
+    </section>
+
+    <!-- VIEW 4: Visual Workflow Builder -->
+    <section id="builderView" class="view" style="position:relative;">
+      <!-- Kill-Chain Graph Toolbar -->
+      <div class="wf-toolbar">
+        <div style="font-size:0.72rem; font-weight:700; color:var(--cyan); font-family:'JetBrains Mono', monospace; margin-right:0.3rem;">
+          KILL-CHAIN BUILDER
+        </div>
+        <button class="wf-toolbar-btn" onclick="window.wf && window.wf.addNode('target', 'Target Scope', '127.0.0.1', 80, 160)">
+          <span>🎯</span> + Target
+        </button>
+        <button class="wf-toolbar-btn" onclick="window.wf && window.wf.addNode('scanner', 'Port Scanner', 'scanning.port_scanner', 320, 160)">
+          <span>📡</span> + Scanner
+        </button>
+        <button class="wf-toolbar-btn" onclick="window.wf && window.wf.addNode('exploiter', 'Vuln Audit', 'scanning.nse_runner', 560, 160)">
+          <span>💣</span> + Exploit
+        </button>
+        <button class="wf-toolbar-btn" onclick="window.wf && window.wf.addNode('reporter', 'JSON Report', 'reporting.json_report', 800, 160)">
+          <span>📝</span> + Report
+        </button>
+        <div style="height:20px; width:1px; background:var(--border); margin:0 0.2rem;"></div>
+        <button class="wf-toolbar-btn" style="background:linear-gradient(135deg, rgba(0,240,255,0.2), rgba(16,185,129,0.2)); color:var(--cyan); border-color:var(--cyan);" onclick="runVisualKillChain()">
+          <span>⚡</span> Run Kill-Chain
+        </button>
+        <button class="wf-toolbar-btn" onclick="exportBlueprint()">
+          <span>💾</span> Export YAML
+        </button>
+        <button class="wf-toolbar-btn" onclick="window.wf && window.wf.loadDefaultKillChain()">
+          <span>🔄</span> Reset
+        </button>
+        <button class="wf-toolbar-btn" style="color:var(--crimson);" onclick="window.wf && window.wf.clearCanvas()">
+          <span>🧹</span> Clear
+        </button>
+      </div>
+
+      <div id="wfContainer" style="width: 100%; height: 100%;"></div>
+    </section>
+
+  </main>
+
+  <!-- Slide-in Tool Execution Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+  <aside class="run-drawer" id="runDrawer">
+    <div class="drawer-header">
+      <h2 id="drawerToolTitle">Tool Execution</h2>
+      <button class="btn-close-drawer" onclick="closeDrawer()">✕</button>
     </div>
 
-    <div class="tool-grid" id="toolGrid"></div>
-  </div>
-</div>
+    <div class="drawer-body">
+      <!-- Tool Metadata -->
+      <div class="tool-meta-box">
+        <div class="tool-meta-desc" id="drawerToolDesc">Tool description</div>
+        <div class="tool-meta-path" id="drawerToolPath">category.tool_name</div>
+      </div>
 
-<script>
-let allTools = {};
-let currentTool = null;
+      <!-- Execution Form -->
+      <form id="drawerForm" onsubmit="event.preventDefault(); runCurrentTool();">
+        <div id="drawerFormFields">
+          <!-- Dynamic Form Inputs -->
+        </div>
 
-async function init() {
-  try {
-    const statusResp = await fetch('/api/status');
-    const statusData = await statusResp.json();
-    document.getElementById('status').textContent = `${statusData.tools_loaded} tools loaded`;
+        <button type="submit" class="btn-primary" id="btnExecuteTool" style="margin-top:1.5rem; width:100%;">
+          <span>🚀</span> Execute Security Tool
+        </button>
+      </form>
 
-    const resp = await fetch('/api/tools');
-    const data = await resp.json();
-    allTools = data.tools;
-    renderCategories();
-    showAllTools();
-  } catch (e) {
-    document.getElementById('status').textContent = 'Connection error';
-    document.getElementById('status').style.color = 'var(--danger)';
-  }
-}
+      <!-- Loading Cyber State -->
+      <div class="loading-cyber" id="drawerLoading">
+        <div class="cyber-radar"></div>
+        <p style="font-weight:700; color:var(--cyan); letter-spacing:0.05em;">EXECUTING SCAN ENGINE...</p>
+        <span style="font-size:0.75rem; color:var(--text-dim); margin-top:0.3rem;">Analyzing target responses and security posture</span>
+      </div>
 
-const ICONS = {
-  reconnaissance: '🔍', scanning: '📡', web: '🌐', exploitation: '💣',
-  passwords: '🔑', detection: '🛡️', log_analysis: '📋', forensics: '🔬',
-  siem: '📊', reporting: '📝'
-};
+      <!-- Results Container -->
+      <div class="results-container" id="drawerResults">
+        <div class="section-title" style="font-size:1.1rem; margin-bottom:1rem;">
+          <span>Scan Findings & Analysis</span>
+        </div>
 
-function renderCategories() {
-  const el = document.getElementById('categoryList');
-  let html = '<div class="sidebar-title">Categories</div>';
-  html += `<button class="category-btn active" onclick="showAllTools(this)">
-    <span class="category-icon">📦</span>All Tools
-    <span class="category-count">${Object.values(allTools).flat().length}</span>
-  </button>`;
-  for (const [cat, tools] of Object.entries(allTools)) {
-    html += `<button class="category-btn" onclick="showCategory('${cat}', this)">
-      <span class="category-icon">${ICONS[cat] || '🔧'}</span>${cat}
-      <span class="category-count">${tools.length}</span>
-    </button>`;
-  }
-  el.innerHTML = html;
-}
+        <div class="stat-strip" id="drawerStatStrip">
+          <!-- Populated stats -->
+        </div>
 
-function showAllTools(btn) {
-  setActiveBtn(btn);
-  const grid = document.getElementById('toolGrid');
-  let html = '';
-  for (const [cat, tools] of Object.entries(allTools)) {
-    tools.forEach(t => { html += toolCard(t); });
-  }
-  grid.innerHTML = html;
-}
+        <div id="drawerFindingsList">
+          <!-- Populated findings -->
+        </div>
 
-function showCategory(cat, btn) {
-  setActiveBtn(btn);
-  const grid = document.getElementById('toolGrid');
-  const tools = allTools[cat] || [];
-  grid.innerHTML = tools.map(t => toolCard(t)).join('');
-}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+          <span style="font-size:0.8rem; font-weight:700; color:var(--text-dim); text-transform:uppercase;">Raw JSON Payload</span>
+          <button class="tab-btn" onclick="copyResultsJson()" style="font-size:0.75rem; padding:0.2rem 0.6rem; border:1px solid var(--border);">📋 Copy JSON</button>
+        </div>
+        <pre class="raw-json-box" id="drawerResultsJson"></pre>
+      </div>
+    </div>
+  </aside>
 
-function toolCard(t) {
-  return `<div class="tool-card" onclick="selectTool('${t.path}')">
-    <h3>${ICONS[t.category] || ''} ${t.name}</h3>
-    <p>${t.description}</p>
-    <div class="path">${t.path}</div>
-  </div>`;
-}
+  <!-- Scripts & Modules -->
+  <script src="/static/js/three.min.js"></script>
+  <script src="/static/js/3d_map.js"></script>
+  <script src="/static/js/workflow_builder.js"></script>
+  <script>
+    // --- Ambient Canvas Particles ---
+    (function initCanvas() {
+      const canvas = document.getElementById('bg-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
 
-function setActiveBtn(btn) {
-  if (!btn) return;
-  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
 
-function selectTool(path) {
-  const tools = Object.values(allTools).flat();
-  currentTool = tools.find(t => t.path === path);
-  if (!currentTool) return;
+      const particles = Array.from({ length: 45 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: Math.random() * 1.5 + 0.5,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        alpha: Math.random() * 0.5 + 0.2
+      }));
 
-  document.getElementById('toolTitle').textContent = `${currentTool.name}`;
-  document.getElementById('toolDesc').textContent = currentTool.description;
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
 
-  let form = '';
-  (currentTool.args || []).forEach(a => {
-    form += `<div class="form-group">
-      <label>${a.name}${a.required ? ' *' : ''} ${a.description ? '— ' + a.description : ''}</label>
-      <input type="text" id="arg_${a.name}" value="${a.default || ''}" placeholder="${a.name}">
-    </div>`;
-  });
-  if (!currentTool.args || currentTool.args.length === 0) {
-    form = `<div class="form-group"><label>Target</label>
-      <input type="text" id="arg_target" placeholder="Target IP or hostname"></div>`;
-  }
-  document.getElementById('argsForm').innerHTML = form;
-  document.getElementById('runPanel').classList.add('active');
-  document.getElementById('resultsPanel').classList.remove('active');
-}
+        // Subtle grid
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.025)';
+        ctx.lineWidth = 1;
+        const gridSize = 65;
+        for (let x = 0; x < width; x += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+          ctx.stroke();
+        }
+        for (let y = 0; y < height; y += gridSize) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
 
-async function runTool() {
-  if (!currentTool) return;
-  const args = {};
-  (currentTool.args || []).forEach(a => {
-    const el = document.getElementById(`arg_${a.name}`);
-    if (el && el.value) args[a.name] = el.value;
-  });
-  // Fallback target
-  const targetEl = document.getElementById('arg_target');
-  if (targetEl && targetEl.value && !args.target) args.target = targetEl.value;
+        // Floating particles
+        particles.forEach(p => {
+          ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
 
-  document.getElementById('loading').classList.add('active');
-  document.getElementById('resultsPanel').classList.remove('active');
+          p.x += p.vx;
+          p.y += p.vy;
 
-  try {
-    const resp = await fetch('/api/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tool_path: currentTool.path, args })
-    });
-    const data = await resp.json();
-    showResults(data);
-  } catch (e) {
-    showResults({ status: 'error', error: e.message });
-  }
-  document.getElementById('loading').classList.remove('active');
-}
+          if (p.x < 0) p.x = width;
+          if (p.x > width) p.x = 0;
+          if (p.y < 0) p.y = height;
+          if (p.y > height) p.y = 0;
+        });
 
-function showResults(data) {
-  document.getElementById('resultsPanel').classList.add('active');
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
 
-  // Stats
-  const findings = data.findings || [];
-  document.getElementById('statBar').innerHTML = `
-    <div class="stat"><div class="num">${data.status || 'N/A'}</div><div class="label">Status</div></div>
-    <div class="stat"><div class="num">${findings.length}</div><div class="label">Findings</div></div>
-    <div class="stat"><div class="num">${(data.duration_ms || 0).toFixed(0)}ms</div><div class="label">Duration</div></div>
-  `;
+    // --- State & Metadata ---
+    let allTools = {};
+    let allProfiles = [];
+    let currentTool = null;
+    let lastResultData = null;
 
-  // Findings
-  let fhtml = '';
-  findings.forEach(f => {
-    const sev = f.severity || 'info';
-    const cls = (sev === 'critical' || sev === 'high') ? sev : '';
-    fhtml += `<div class="finding ${cls}">
-      <div class="title">[${sev.toUpperCase()}] ${f.title || ''}</div>
-      <div class="desc">${f.description || ''}</div>
-    </div>`;
-  });
-  document.getElementById('findingsContainer').innerHTML = fhtml;
+    const CATEGORY_META = {
+      cloud: { icon: '☁️', label: 'Cloud Security', class: 'tag-cloud' },
+      crypto: { icon: '🔐', label: 'Cryptography', class: 'tag-crypto' },
+      api_security: { icon: '⚡', label: 'API Security', class: 'tag-api_security' },
+      mobile: { icon: '📱', label: 'Mobile Security', class: 'tag-mobile' },
+      reconnaissance: { icon: '🔍', label: 'Reconnaissance', class: 'tag-reconnaissance' },
+      scanning: { icon: '📡', label: 'Scanning', class: 'tag-default' },
+      web: { icon: '🌐', label: 'Web Security', class: 'tag-web' },
+      exploitation: { icon: '💣', label: 'Exploitation', class: 'tag-mobile' },
+      passwords: { icon: '🔑', label: 'Passwords', class: 'tag-crypto' },
+      detection: { icon: '🛡️', label: 'Detection', class: 'tag-web' },
+      log_analysis: { icon: '📋', label: 'Log Analysis', class: 'tag-default' },
+      forensics: { icon: '🔬', label: 'Forensics', class: 'tag-api_security' },
+      siem: { icon: '📊', label: 'SIEM', class: 'tag-default' },
+      reporting: { icon: '📝', label: 'Reporting', class: 'tag-cloud' },
+      osint: { icon: '🕵️', label: 'OSINT', class: 'tag-reconnaissance' },
+      network: { icon: '🔌', label: 'Network', class: 'tag-cloud' },
+      wireless: { icon: '📶', label: 'Wireless', class: 'tag-default' }
+    };
 
-  // JSON
-  document.getElementById('resultsJson').textContent = JSON.stringify(data, null, 2);
-}
+    // --- Tab Switching ---
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
-function closePanel() {
-  document.getElementById('runPanel').classList.remove('active');
-  currentTool = null;
-}
+      if (btn) {
+        btn.classList.add('active');
+      } else {
+        const matchingBtn = document.getElementById('tab-' + tabId);
+        if (matchingBtn) matchingBtn.classList.add('active');
+      }
 
-function filterTools() {
-  const q = document.getElementById('searchBox').value.toLowerCase();
-  const grid = document.getElementById('toolGrid');
-  const all = Object.values(allTools).flat();
-  const filtered = all.filter(t =>
-    t.name.toLowerCase().includes(q) ||
-    t.description.toLowerCase().includes(q) ||
-    t.path.toLowerCase().includes(q)
-  );
-  grid.innerHTML = filtered.map(t => toolCard(t)).join('');
-}
+      const targetView = document.getElementById(tabId + 'View');
+      if (targetView) targetView.classList.add('active');
 
-init();
-</script>
+      // Hook tab activations
+      if (tabId === 'map') {
+        setTimeout(() => {
+          if (!window.map3d && typeof NetworkMap3D !== 'undefined') {
+            window.map3d = new NetworkMap3D('mapContainer');
+            window.map3d.init();
+          } else if (window.map3d) {
+            window.map3d.onWindowResize();
+          }
+        }, 50);
+      } else if (tabId === 'builder') {
+        setTimeout(() => {
+          if (!window.wf && typeof WorkflowBuilder !== 'undefined') {
+            window.wf = new WorkflowBuilder('wfContainer');
+            window.wf.loadDefaultKillChain();
+          } else if (window.wf) {
+            window.wf.updateLinks();
+          }
+        }, 50);
+      } else if (tabId === 'pipelines') {
+        renderProfiles();
+      }
+    }
+
+    // --- Initialization & API Fetching ---
+    async function init() {
+      // Fetch tools
+      try {
+        const toolsResp = await fetch('/api/tools');
+        if (toolsResp.ok) {
+          const toolsData = await toolsResp.json();
+          allTools = toolsData.tools || {};
+          renderCategories();
+          showAllTools();
+          const totalCount = Object.values(allTools).flat().length;
+          document.getElementById('hudTotalTools').innerHTML = `${totalCount} <span style="font-size:0.9rem; color:var(--cyan);">Tools</span>`;
+          document.getElementById('hudCategories').innerHTML = `${Object.keys(allTools).length} <span style="font-size:0.9rem; color:var(--purple);">Categories</span>`;
+          document.getElementById('systemStatus').textContent = `${totalCount} Tools Online`;
+        }
+      } catch (err) {
+        console.error("Error loading tools:", err);
+      }
+
+      // Fetch stats
+      try {
+        const statsResp = await fetch('/api/stats');
+        if (statsResp.ok) {
+          const statsData = await statsResp.json();
+          const scanCount = statsData.total_scans || 0;
+          document.getElementById('hudTotalScans').innerHTML = `${scanCount} <span style="font-size:0.9rem; color:var(--emerald);">Scans Run</span>`;
+        }
+      } catch (err) {
+        console.error("Error loading stats:", err);
+      }
+
+      // Fetch profiles
+      try {
+        const profilesResp = await fetch('/api/profiles');
+        if (profilesResp.ok) {
+          const profilesData = await profilesResp.json();
+          allProfiles = profilesData.profiles || [];
+          renderProfiles();
+        }
+      } catch (err) {
+        console.error("Error loading profiles:", err);
+      }
+    }
+
+    // --- Render Categories in Sidebar ---
+    function renderCategories() {
+      const container = document.getElementById('categoryList');
+      if (!container) return;
+      const totalCount = Object.values(allTools).flat().length;
+
+      let html = `
+        <button class="category-btn active" onclick="showAllTools(this)">
+          <span class="category-icon">📦</span>
+          <span>All Modules</span>
+          <span class="category-count">${totalCount}</span>
+        </button>
+      `;
+
+      for (const [cat, tools] of Object.entries(allTools)) {
+        const meta = CATEGORY_META[cat] || { icon: '🔧', label: cat.toUpperCase() };
+        html += `
+          <button class="category-btn" onclick="showCategory('${cat}', this)">
+            <span class="category-icon">${meta.icon}</span>
+            <span>${cat.replace(/_/g, ' ').toUpperCase()}</span>
+            <span class="category-count">${tools.length}</span>
+          </button>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function showAllTools(btn) {
+      if (btn) setActiveBtn(btn);
+      document.getElementById('currentCategoryLabel').textContent = "All Security Tools";
+      const allList = Object.values(allTools).flat();
+      document.getElementById('toolsCountBadge').textContent = allList.length;
+
+      const grid = document.getElementById('toolGrid');
+      if (grid) grid.innerHTML = allList.map(t => renderToolCard(t)).join('');
+    }
+
+    function showCategory(cat, btn) {
+      if (btn) setActiveBtn(btn);
+      const meta = CATEGORY_META[cat] || { label: cat };
+      document.getElementById('currentCategoryLabel').textContent = meta.label || cat.toUpperCase();
+      const catTools = allTools[cat] || [];
+      document.getElementById('toolsCountBadge').textContent = catTools.length;
+
+      const grid = document.getElementById('toolGrid');
+      if (grid) grid.innerHTML = catTools.map(t => renderToolCard(t)).join('');
+    }
+
+    function setActiveBtn(btn) {
+      document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function renderToolCard(t) {
+      const meta = CATEGORY_META[t.category] || { icon: '🔧', class: 'tag-default' };
+      return `
+        <div class="tool-card" onclick="openToolDrawer('${t.path}')">
+          <div>
+            <div class="tool-card-top">
+              <h3>${meta.icon} ${t.name}</h3>
+              <span class="category-tag ${meta.class}">${t.category}</span>
+            </div>
+            <p class="tool-desc">${t.description}</p>
+          </div>
+          <div class="tool-card-bottom">
+            <span class="tool-path">${t.path}</span>
+            <button class="btn-launch-inline" onclick="event.stopPropagation(); openToolDrawer('${t.path}')">
+              <span>▶</span> Launch
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function filterTools() {
+      const q = document.getElementById('searchBox').value.toLowerCase().trim();
+      const allList = Object.values(allTools).flat();
+      const filtered = allList.filter(t => 
+        t.name.toLowerCase().includes(q) || 
+        (t.description || '').toLowerCase().includes(q) || 
+        t.path.toLowerCase().includes(q) ||
+        t.category.toLowerCase().includes(q)
+      );
+
+      document.getElementById('currentCategoryLabel').textContent = q ? `Search: "${q}"` : "All Security Tools";
+      document.getElementById('toolsCountBadge').textContent = filtered.length;
+      document.getElementById('toolGrid').innerHTML = filtered.map(t => renderToolCard(t)).join('');
+    }
+
+    // --- Execution Drawer ---
+    function openToolDrawer(path) {
+      currentTool = Object.values(allTools).flat().find(t => t.path === path);
+      if (!currentTool) return;
+
+      const meta = CATEGORY_META[currentTool.category] || { icon: '🔧' };
+      document.getElementById('drawerToolTitle').innerHTML = `${meta.icon} ${currentTool.name}`;
+      document.getElementById('drawerToolDesc').textContent = currentTool.description;
+      document.getElementById('drawerToolPath').textContent = currentTool.path;
+
+      let fieldsHtml = '';
+      const args = currentTool.args || [];
+      if (args.length > 0) {
+        args.forEach(a => {
+          fieldsHtml += `
+            <div class="form-group">
+              <label>
+                <span>${a.name}</span>
+                ${a.required ? '<span style="color:var(--crimson);">* REQUIRED</span>' : ''}
+              </label>
+              <input type="text" id="drawer_arg_${a.name}" value="${a.default || ''}" placeholder="${a.description || a.name}">
+            </div>
+          `;
+        });
+      } else {
+        fieldsHtml = `
+          <div class="form-group">
+            <label><span>Target Host / URL</span> <span style="color:var(--crimson);">* REQUIRED</span></label>
+            <input type="text" id="drawer_arg_target" placeholder="e.g. example.com, 10.0.0.1, https://api.site.com">
+          </div>
+        `;
+      }
+
+      document.getElementById('drawerFormFields').innerHTML = fieldsHtml;
+      document.getElementById('drawerResults').classList.remove('active');
+      document.getElementById('drawerLoading').classList.remove('active');
+
+      document.getElementById('drawerBackdrop').classList.add('active');
+      document.getElementById('runDrawer').classList.add('active');
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerBackdrop').classList.remove('active');
+      document.getElementById('runDrawer').classList.remove('active');
+    }
+
+    async function runCurrentTool() {
+      if (!currentTool) return;
+
+      const args = {};
+      (currentTool.args || []).forEach(a => {
+        const input = document.getElementById(`drawer_arg_${a.name}`);
+        if (input && input.value) args[a.name] = input.value;
+      });
+
+      const fallbackTarget = document.getElementById('drawer_arg_target');
+      if (fallbackTarget && fallbackTarget.value && !args.target) {
+        args.target = fallbackTarget.value;
+      }
+
+      document.getElementById('drawerLoading').classList.add('active');
+      document.getElementById('drawerResults').classList.remove('active');
+      document.getElementById('btnExecuteTool').disabled = true;
+
+      try {
+        const resp = await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_path: currentTool.path, args })
+        });
+        const resData = await resp.json();
+        showDrawerResults(resData);
+      } catch (e) {
+        showDrawerResults({ status: 'error', error: e.message });
+      } finally {
+        document.getElementById('drawerLoading').classList.remove('active');
+        document.getElementById('btnExecuteTool').disabled = false;
+      }
+    }
+
+    function showDrawerResults(data) {
+      lastResultData = data;
+
+      // Handle Multi-Stage Pipeline Execution
+      if (Array.isArray(data.results)) {
+        const totalStages = data.total || data.results.length;
+        const successStages = data.success !== undefined ? data.success : data.results.filter(r => r.status === 'success').length;
+        const allFindings = data.results.flatMap(r => r.findings || []);
+        const totalDuration = data.results.reduce((acc, r) => acc + (r.duration_ms || 0), 0);
+        const overallStatus = successStages === totalStages ? 'PASSED' : (successStages > 0 ? 'PARTIAL' : 'FAILED');
+
+        document.getElementById('drawerStatStrip').innerHTML = `
+          <div class="stat-pill">
+            <div class="val" style="color:${overallStatus === 'PASSED' ? 'var(--emerald)' : (overallStatus === 'PARTIAL' ? 'var(--amber)' : 'var(--crimson)')};">
+              ${overallStatus}
+            </div>
+            <div class="lbl">${successStages}/${totalStages} Stages Passed</div>
+          </div>
+          <div class="stat-pill">
+            <div class="val" style="color:${allFindings.length > 0 ? 'var(--amber)' : 'var(--cyan)'};">${allFindings.length}</div>
+            <div class="lbl">Findings Discovered</div>
+          </div>
+          <div class="stat-pill">
+            <div class="val">${totalDuration > 0 ? `${totalDuration.toFixed(0)}ms` : 'N/A'}</div>
+            <div class="lbl">Total Runtime</div>
+          </div>
+        `;
+
+        let stagesHtml = `
+          <div style="margin-bottom:1.5rem;">
+            <div style="font-size:0.85rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; margin-bottom:0.75rem;">
+              Execution Stages (${totalStages})
+            </div>
+        `;
+        data.results.forEach((stage, idx) => {
+          const isSuccess = stage.status === 'success';
+          const dur = stage.duration_ms ? `${stage.duration_ms.toFixed(0)}ms` : '';
+          const stageFindings = (stage.findings || []).length;
+          stagesHtml += `
+            <div style="background:rgba(15,23,42,0.85); border:1px solid ${isSuccess ? 'rgba(16,185,129,0.3)' : 'rgba(255,0,85,0.3)'}; border-left:4px solid ${isSuccess ? 'var(--emerald)' : 'var(--crimson)'}; border-radius:8px; padding:0.75rem 1rem; margin-bottom:0.6rem; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:700; font-size:0.9rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+                  <span style="font-family:'JetBrains Mono',monospace; color:var(--cyan); font-size:0.75rem;">[Stage ${idx + 1}]</span>
+                  <span>${stage.tool_name || 'Tool'}</span>
+                  <span style="font-size:0.7rem; padding:0.1rem 0.4rem; border-radius:4px; background:${isSuccess ? 'rgba(16,185,129,0.15)' : 'rgba(255,0,85,0.15)'}; color:${isSuccess ? 'var(--emerald)' : 'var(--crimson)'};">
+                    ${(stage.status || 'DONE').toUpperCase()}
+                  </span>
+                </div>
+                ${stage.error ? `<div style="font-size:0.75rem; color:var(--crimson); margin-top:0.25rem;">${stage.error}</div>` : ''}
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.75rem; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">${dur}</div>
+                ${stageFindings > 0 ? `<div style="font-size:0.72rem; color:var(--amber); font-weight:700;">${stageFindings} findings</div>` : ''}
+              </div>
+            </div>
+          `;
+        });
+        stagesHtml += `</div>`;
+
+        let findingsHtml = stagesHtml;
+        findingsHtml += `
+          <div style="font-size:0.85rem; font-weight:700; color:var(--text-dim); text-transform:uppercase; margin-bottom:0.75rem;">
+            Security Findings (${allFindings.length})
+          </div>
+        `;
+        if (allFindings.length > 0) {
+          allFindings.forEach(f => {
+            const sev = (f.severity || 'info').toLowerCase();
+            findingsHtml += `
+              <div class="finding-card ${sev}">
+                <div class="finding-title">
+                  <span class="category-tag ${sev === 'critical' ? 'tag-mobile' : sev === 'high' ? 'tag-crypto' : 'tag-cloud'}">
+                    ${sev.toUpperCase()}
+                  </span>
+                  <span>${f.title || 'Security Finding'}</span>
+                </div>
+                <div class="finding-desc">${f.description || 'No additional details provided.'}</div>
+                ${f.remediation ? `
+                  <div class="finding-remed">
+                    <b>Remediation:</b> ${f.remediation}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          });
+        } else {
+          findingsHtml += `
+            <div style="text-align:center; padding:1.25rem; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; color:var(--emerald); font-size:0.85rem;">
+              ✓ All pipeline stages passed clean without critical findings.
+            </div>
+          `;
+        }
+
+        document.getElementById('drawerFindingsList').innerHTML = findingsHtml;
+        document.getElementById('drawerResultsJson').textContent = JSON.stringify(data, null, 2);
+        document.getElementById('drawerResults').classList.add('active');
+        return;
+      }
+
+      // Single Tool Execution
+      const findings = data.findings || [];
+      const duration = data.duration_ms ? `${data.duration_ms.toFixed(0)}ms` : 'N/A';
+
+      document.getElementById('drawerStatStrip').innerHTML = `
+        <div class="stat-pill">
+          <div class="val" style="color:${data.status === 'success' ? 'var(--emerald)' : 'var(--crimson)'};">
+            ${(data.status || 'OK').toUpperCase()}
+          </div>
+          <div class="lbl">Execution Status</div>
+        </div>
+        <div class="stat-pill">
+          <div class="val">${findings.length}</div>
+          <div class="lbl">Findings Discovered</div>
+        </div>
+        <div class="stat-pill">
+          <div class="val">${duration}</div>
+          <div class="lbl">Elapsed Time</div>
+        </div>
+      `;
+
+      let findingsHtml = '';
+      if (findings.length > 0) {
+        findings.forEach(f => {
+          const sev = (f.severity || 'info').toLowerCase();
+          findingsHtml += `
+            <div class="finding-card ${sev}">
+              <div class="finding-title">
+                <span class="category-tag ${sev === 'critical' ? 'tag-mobile' : sev === 'high' ? 'tag-crypto' : 'tag-cloud'}">
+                  ${sev.toUpperCase()}
+                </span>
+                <span>${f.title || 'Security Finding'}</span>
+              </div>
+              <div class="finding-desc">${f.description || 'No additional details provided.'}</div>
+              ${f.remediation ? `
+                <div class="finding-remed">
+                  <b>Remediation:</b> ${f.remediation}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        });
+      } else {
+        findingsHtml = `
+          <div style="text-align:center; padding:1.5rem; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; color:var(--emerald);">
+            ✓ Execution clean — no high severity findings reported.
+          </div>
+        `;
+      }
+
+      document.getElementById('drawerFindingsList').innerHTML = findingsHtml;
+      document.getElementById('drawerResultsJson').textContent = JSON.stringify(data, null, 2);
+      document.getElementById('drawerResults').classList.add('active');
+    }
+
+    function copyResultsJson() {
+      if (lastResultData) {
+        navigator.clipboard.writeText(JSON.stringify(lastResultData, null, 2));
+        alert("JSON copied to clipboard!");
+      }
+    }
+
+    // --- Pipeline Profiles View ---
+    function renderProfiles() {
+      const container = document.getElementById('profileGrid');
+      if (!container) return;
+      const PROFILE_ICONS = {
+        full_pentest: '⚔️',
+        quick_scan: '⚡',
+        osint_recon: '🕵️',
+        blue_team_check: '🛡️',
+        compliance_scan: '📋',
+        web_audit: '🌐',
+        wireless_audit: '📶',
+        password_audit: '🔑'
+      };
+
+      container.innerHTML = allProfiles.map(p => {
+        const icon = PROFILE_ICONS[p.name] || '🚀';
+        return `
+          <div class="profile-card">
+            <div>
+              <div class="profile-header">
+                <div class="profile-icon">${icon}</div>
+                <div>
+                  <h3 style="color:#fff; font-size:1.15rem;">${p.name.replace(/_/g, ' ').toUpperCase()}</h3>
+                  <span style="font-size:0.75rem; color:var(--cyan); font-family:'JetBrains Mono', monospace;">${p.config_file}</span>
+                </div>
+              </div>
+              <p style="color:var(--text-muted); font-size:0.85rem; line-height:1.5;">Automated security assessment pipeline chaining specialized tool stages.</p>
+            </div>
+            <div>
+              <button class="btn-run-profile" onclick="promptRunPipeline('${p.name}')">
+                <span>▶</span> Launch Pipeline
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function promptRunPipeline(profileName) {
+      const target = prompt(`Enter target host or domain for pipeline '${profileName}':`, "127.0.0.1");
+      if (!target) return;
+
+      switchTab('explorer');
+
+      document.getElementById('drawerToolTitle').textContent = `Pipeline: ${profileName.toUpperCase()}`;
+      document.getElementById('drawerToolDesc').textContent = `Running automated multi-stage pipeline against ${target}`;
+      document.getElementById('drawerToolPath').textContent = `pipeline.${profileName}`;
+      document.getElementById('drawerFormFields').innerHTML = '';
+      document.getElementById('drawerLoading').classList.add('active');
+      document.getElementById('drawerResults').classList.remove('active');
+      document.getElementById('drawerBackdrop').classList.add('active');
+      document.getElementById('runDrawer').classList.add('active');
+
+      try {
+        const resp = await fetch('/api/pipeline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile: profileName, args: { target } })
+        });
+        const data = await resp.json();
+        showDrawerResults(data);
+      } catch (e) {
+        showDrawerResults({ status: 'error', error: e.message });
+      } finally {
+        document.getElementById('drawerLoading').classList.remove('active');
+      }
+    }
+
+    function openQuickScan() {
+      openToolDrawer('scanning.port_scanner');
+    }
+
+    function exportBlueprint() {
+      if (!window.wf) {
+        alert("Kill-chain canvas not initialized");
+        return;
+      }
+      const yaml = window.wf.exportYaml();
+      const blob = new Blob([yaml], { type: 'text/yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'killchain_profile.yaml';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function runVisualKillChain() {
+      if (!window.wf) {
+        alert("Kill-chain builder not ready");
+        return;
+      }
+      window.wf.runKillChain();
+    }
+
+    // Launch!
+    window.addEventListener('DOMContentLoaded', init);
+    // Also run immediately
+    init();
+  </script>
 </body>
 </html>

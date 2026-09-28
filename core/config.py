@@ -15,7 +15,7 @@ from typing import Any, Dict, Optional
 DEFAULT_CONFIG: Dict[str, Any] = {
     "framework": {
         "name": "CyberToolkit Pro",
-        "version": "2.0.0",
+        "version": "2.5.0",
         "log_level": "INFO",
         "log_dir": "logs",
         "report_dir": "reports",

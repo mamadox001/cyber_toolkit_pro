@@ -1,7 +1,7 @@
 # =============================================================================
 # CyberToolkit Pro — Credential Vault
 # =============================================================================
-# Encrypted credential storage using Fernet symmetric encryption.
+# Encrypted credential storage using Fernet symmetric encryption and PBKDF2 HMAC.
 # Stores API keys, found credentials, and session tokens securely.
 # =============================================================================
 
@@ -19,31 +19,42 @@ class CredentialVault:
     def __init__(self, vault_path: str = "config/.vault", master_key: str = ""):
         self.vault_path = vault_path
         self._entries = {}
+        self.salt = None
         self._cipher = None
-        self._key = self._derive_key(master_key or os.environ.get("CYBERTK_VAULT_KEY", "default_key"))
-        self._init_cipher()
+        self._passphrase = master_key or os.environ.get("CYBERTK_VAULT_KEY", "default_key")
         self._load()
 
-    def _derive_key(self, passphrase: str) -> bytes:
-        """Derive a Fernet-compatible key from a passphrase."""
-        digest = hashlib.sha256(passphrase.encode("utf-8")).digest()
-        return base64.urlsafe_b64encode(digest)
-
-    def _init_cipher(self):
+    def _init_cipher(self, passphrase: str, salt: Optional[bytes] = None):
         """Initialize the Fernet cipher."""
         try:
             from cryptography.fernet import Fernet
-            self._cipher = Fernet(self._key)
+            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+            from cryptography.hazmat.primitives import hashes
+
+            if salt is None:
+                salt = os.urandom(16)
+            self.salt = salt
+
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=self.salt,
+                iterations=100000,
+            )
+            key = base64.urlsafe_b64encode(kdf.derive(passphrase.encode("utf-8")))
+            self._cipher = Fernet(key)
         except ImportError:
-            # Fallback: base64 obfuscation (NOT secure, but functional)
             self._cipher = None
+            self.salt = None
 
     def _encrypt(self, data: str) -> str:
         """Encrypt a string value."""
         if self._cipher:
             return self._cipher.encrypt(data.encode("utf-8")).decode("utf-8")
-        # Fallback — base64 only
-        return base64.b64encode(data.encode("utf-8")).decode("utf-8")
+        raise RuntimeError(
+            "The 'cryptography' library is required to encrypt/decrypt credentials. "
+            "Please run 'pip install cryptography'."
+        )
 
     def _decrypt(self, data: str) -> str:
         """Decrypt a string value."""
@@ -52,23 +63,76 @@ class CredentialVault:
                 return self._cipher.decrypt(data.encode("utf-8")).decode("utf-8")
             except Exception:
                 return "[DECRYPTION FAILED]"
-        return base64.b64decode(data.encode("utf-8")).decode("utf-8")
+        raise RuntimeError(
+            "The 'cryptography' library is required to encrypt/decrypt credentials. "
+            "Please run 'pip install cryptography'."
+        )
 
     def _load(self):
         """Load vault from disk."""
         if not os.path.exists(self.vault_path):
+            self._init_cipher(self._passphrase)
             return
+
         try:
             with open(self.vault_path, "r", encoding="utf-8") as f:
-                self._entries = json.load(f)
+                data = json.load(f)
         except (json.JSONDecodeError, IOError):
-            self._entries = {}
+            data = {}
+
+        if isinstance(data, dict) and "salt" in data and "entries" in data:
+            salt = base64.b64decode(data["salt"].encode("utf-8"))
+            self._init_cipher(self._passphrase, salt)
+            self._entries = data["entries"]
+        else:
+            # Legacy format - migrate it
+            self._entries = data
+            if self._entries:
+                # Decrypt entries using the old legacy key derivation
+                legacy_key = base64.urlsafe_b64encode(hashlib.sha256(self._passphrase.encode("utf-8")).digest())
+                try:
+                    from cryptography.fernet import Fernet
+                    legacy_cipher = Fernet(legacy_key)
+
+                    decrypted_entries = {}
+                    for k, entry in self._entries.items():
+                        try:
+                            decrypted_val = legacy_cipher.decrypt(entry["value"].encode("utf-8")).decode("utf-8")
+                            decrypted_entries[k] = {
+                                "value": decrypted_val,
+                                "category": entry.get("category", "general"),
+                                "stored_at": entry.get("stored_at", ""),
+                                "metadata": entry.get("metadata", {}),
+                            }
+                        except Exception:
+                            decrypted_entries[k] = None
+                except ImportError:
+                    decrypted_entries = {}
+
+                # Now generate new salt, derive key using PBKDF2, and encrypt everything again
+                self._init_cipher(self._passphrase)
+                if self._cipher:
+                    for k, entry in decrypted_entries.items():
+                        if entry is not None:
+                            self._entries[k] = {
+                                "value": self._cipher.encrypt(entry["value"].encode("utf-8")).decode("utf-8"),
+                                "category": entry["category"],
+                                "stored_at": entry["stored_at"],
+                                "metadata": entry["metadata"],
+                            }
+                    self._save()
+            else:
+                self._init_cipher(self._passphrase)
 
     def _save(self):
         """Save vault to disk."""
         os.makedirs(os.path.dirname(self.vault_path) or ".", exist_ok=True)
+        data = {
+            "salt": base64.b64encode(self.salt).decode("utf-8") if self.salt else "",
+            "entries": self._entries
+        }
         with open(self.vault_path, "w", encoding="utf-8") as f:
-            json.dump(self._entries, f, indent=2)
+            json.dump(data, f, indent=2)
 
     def store(self, key: str, value: str, category: str = "general",
               metadata: Optional[Dict] = None) -> None:

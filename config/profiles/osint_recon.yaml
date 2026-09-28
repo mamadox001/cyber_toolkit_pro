@@ -1,0 +1,11 @@
+# Pipeline Profile: OSINT Reconnaissance
+name: "OSINT Recon"
+description: "Passive and active OSINT gathering including DNS, subdomains, WHOIS, CT logs, and reputation"
+steps:
+  - reconnaissance.dns_lookup
+  - reconnaissance.whois_lookup
+  - reconnaissance.ct_search
+  - reconnaissance.asn_lookup
+  - osint.domain_reputation
+  - osint.wayback_machine
+  - reporting.json_report

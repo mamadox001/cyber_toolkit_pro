@@ -49,7 +49,7 @@ class Pipeline:
             description=data.get("description", ""),
         )
 
-    def run(self, args: Dict[str, Any]) -> List[ToolResult]:
+    def run(self, args: Dict[str, Any], dry_run: bool = False) -> List[ToolResult]:
         """
         Execute the pipeline sequentially.
 
@@ -63,6 +63,16 @@ class Pipeline:
         if self.description:
             output.info(self.description)
         output.info(f"Steps: {' → '.join(self.steps)}\n")
+
+        if dry_run:
+            output.info("DRY RUN — no tools will be executed")
+            for i, step in enumerate(self.steps, 1):
+                tool = registry.get(step)
+                status = "✅ found" if tool else "❌ NOT FOUND"
+                output.info(f"  Stage {i}: {step}  ({status})")
+            output.section("Dry Run Complete")
+            output.info(f"{len(self.steps)} stages would execute")
+            return []
 
         for i, step in enumerate(self.steps, 1):
             output.info(f"Stage {i}/{len(self.steps)}: {step}")
@@ -124,7 +134,7 @@ def list_profiles(profiles_dir: str = "config/profiles") -> Dict[str, str]:
     return profiles
 
 
-def run_profile(profile_name: str, args: Dict[str, Any]) -> List[ToolResult]:
+def run_profile(profile_name: str, args: Dict[str, Any], dry_run: bool = False) -> List[ToolResult]:
     """Load and execute a named pipeline profile."""
     profiles = list_profiles()
 
@@ -133,7 +143,7 @@ def run_profile(profile_name: str, args: Dict[str, Any]) -> List[ToolResult]:
         return []
 
     pipeline = Pipeline.from_yaml(profiles[profile_name])
-    return pipeline.run(args)
+    return pipeline.run(args, dry_run=dry_run)
 
 
 # Backward-compatible function

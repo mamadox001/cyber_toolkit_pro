@@ -5,7 +5,7 @@ FROM python:3.11-slim
 
 LABEL maintainer="CyberToolkit Pro Team"
 LABEL description="Professional Cybersecurity Framework"
-LABEL version="2.0.0"
+LABEL version="2.5.0"
 
 # Install system tools commonly needed for security testing
 RUN apt-get update && apt-get install -y --no-install-recommends \

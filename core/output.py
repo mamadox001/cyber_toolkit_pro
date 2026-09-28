@@ -107,7 +107,7 @@ def banner():
   ##    ##    ##    ##     ## ##       ##    ##     ##    ##   ##
    ######     ##    ########  ######## ##     ##    ##    ##    ##
   {Colors.RESET}{Colors.MAGENTA}+============================================================+
-  |{Colors.WHITE}{Colors.BOLD}   CyberToolkit Pro v2.0  --  Offensive & Defensive Sec   {Colors.RESET}{Colors.MAGENTA}|
+  |{Colors.WHITE}{Colors.BOLD}   CyberToolkit Pro v2.5  --  Offensive & Defensive Sec   {Colors.RESET}{Colors.MAGENTA}|
   |{Colors.DIM}         Professional Cybersecurity Framework              {Colors.RESET}{Colors.MAGENTA}|
   +============================================================+{Colors.RESET}
 """

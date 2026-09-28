@@ -1,0 +1,6 @@
+# Pipeline Profile: Wireless Security Audit
+name: "Wireless Audit"
+description: "Local Wi-Fi interface enumeration and beacon auditing"
+steps:
+  - wireless.wifi_scanner
+  - reporting.json_report

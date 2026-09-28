@@ -1,0 +1,8 @@
+# Pipeline Profile: Compliance Audit
+name: "Compliance Scan"
+description: "Automated baseline check mapped to ISO 27001, SOC 2, and NIST controls"
+steps:
+  - crypto.ssl_tls_auditor
+  - crypto.certificate_analyzer
+  - reconnaissance.http_fingerprint
+  - reporting.compliance_report

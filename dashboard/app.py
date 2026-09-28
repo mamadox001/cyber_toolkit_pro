@@ -40,7 +40,7 @@ def create_app():
     app = FastAPI(
         title="CyberToolkit Pro",
         description="Professional Cybersecurity Framework — Web Dashboard",
-        version="2.0.0",
+        version="2.5.0",
     )
 
     # --- Request Models ---
@@ -53,6 +53,9 @@ def create_app():
         args: Dict[str, Any] = {}
 
     # --- API Routes ---
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    if os.path.exists(static_dir):
+        app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
     @app.get("/", response_class=HTMLResponse)
     async def root():
@@ -124,12 +127,28 @@ def create_app():
         profiles = list_profiles()
         return {"profiles": profiles}
 
+    class RunAdhocPipelineRequest(BaseModel):
+        steps: list = []
+        args: Dict[str, Any] = {}
+
     @app.post("/api/pipeline")
     async def run_pipeline_endpoint(request: RunPipelineRequest):
         """Execute a pipeline profile."""
         results = run_profile(request.profile, request.args)
         return {
             "profile": request.profile,
+            "results": [r.to_dict() for r in results],
+            "total": len(results),
+            "success": sum(1 for r in results if r.status == "success"),
+        }
+
+    @app.post("/api/pipeline/adhoc")
+    async def run_adhoc_pipeline_endpoint(request: RunAdhocPipelineRequest):
+        """Execute an ad-hoc list of pipeline steps from the Kill-Chain builder."""
+        from core.pipeline import run_pipeline
+        results = run_pipeline(request.steps, request.args)
+        return {
+            "profile": "custom_killchain",
             "results": [r.to_dict() for r in results],
             "total": len(results),
             "success": sum(1 for r in results if r.status == "success"),

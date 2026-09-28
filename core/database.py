@@ -8,6 +8,7 @@
 import os
 import json
 import sqlite3
+import threading
 from datetime import datetime
 from typing import Optional, Dict, List
 
@@ -27,6 +28,7 @@ class Database:
         if self._initialized:
             return
         self._initialized = True
+        self._lock = threading.Lock()
         os.makedirs(os.path.dirname(db_path) or ".", exist_ok=True)
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
@@ -116,51 +118,52 @@ class Database:
                   campaign_id: str = "", stdout: str = "",
                   error: str = "") -> str:
         """Save a scan result to the database."""
-        now = datetime.utcnow().isoformat() + "Z"
-        c = self.conn.cursor()
-
-        c.execute("""
-            INSERT OR REPLACE INTO scans
-            (scan_id, campaign_id, tool_name, target, status, args, data,
-             stdout, error, duration_ms, findings_count, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            scan_id, campaign_id, tool_name, target, status,
-            json.dumps(args, default=str),
-            json.dumps(data, default=str),
-            stdout, error, duration_ms, len(findings), now
-        ))
-
-        # Save findings
-        for f in findings:
-            title = f.title if hasattr(f, "title") else f.get("title", "")
-            severity = f.severity.value if hasattr(f, "severity") and hasattr(f.severity, "value") else f.get("severity", "info")
-            desc = f.description if hasattr(f, "description") else f.get("description", "")
-            evidence = f.evidence if hasattr(f, "evidence") else f.get("evidence", "")
-            remediation = f.remediation if hasattr(f, "remediation") else f.get("remediation", "")
+        with self._lock:
+            now = datetime.utcnow().isoformat() + "Z"
+            c = self.conn.cursor()
 
             c.execute("""
-                INSERT INTO findings
-                (scan_id, title, severity, description, evidence, remediation, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (scan_id, title, severity, desc, evidence, remediation, now))
+                INSERT OR REPLACE INTO scans
+                (scan_id, campaign_id, tool_name, target, status, args, data,
+                 stdout, error, duration_ms, findings_count, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                scan_id, campaign_id, tool_name, target, status,
+                json.dumps(args, default=str),
+                json.dumps(data, default=str),
+                stdout, error, duration_ms, len(findings), now
+            ))
 
-        # Update target record
-        c.execute("SELECT id FROM targets WHERE target = ?", (target,))
-        if c.fetchone():
-            c.execute("""
-                UPDATE targets SET last_seen = ?, scan_count = scan_count + 1,
-                total_findings = total_findings + ? WHERE target = ?
-            """, (now, len(findings), target))
-        else:
-            c.execute("""
-                INSERT INTO targets (target, target_type, first_seen, last_seen,
-                scan_count, total_findings)
-                VALUES (?, ?, ?, ?, 1, ?)
-            """, (target, _detect_target_type(target), now, now, len(findings)))
+            # Save findings
+            for f in findings:
+                title = f.title if hasattr(f, "title") else f.get("title", "")
+                severity = f.severity.value if hasattr(f, "severity") and hasattr(f.severity, "value") else f.get("severity", "info")
+                desc = f.description if hasattr(f, "description") else f.get("description", "")
+                evidence = f.evidence if hasattr(f, "evidence") else f.get("evidence", "")
+                remediation = f.remediation if hasattr(f, "remediation") else f.get("remediation", "")
 
-        self.conn.commit()
-        return scan_id
+                c.execute("""
+                    INSERT INTO findings
+                    (scan_id, title, severity, description, evidence, remediation, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (scan_id, title, severity, desc, evidence, remediation, now))
+
+            # Update target record
+            c.execute("SELECT id FROM targets WHERE target = ?", (target,))
+            if c.fetchone():
+                c.execute("""
+                    UPDATE targets SET last_seen = ?, scan_count = scan_count + 1,
+                    total_findings = total_findings + ? WHERE target = ?
+                """, (now, len(findings), target))
+            else:
+                c.execute("""
+                    INSERT INTO targets (target, target_type, first_seen, last_seen,
+                    scan_count, total_findings)
+                    VALUES (?, ?, ?, ?, 1, ?)
+                """, (target, _detect_target_type(target), now, now, len(findings)))
+
+            self.conn.commit()
+            return scan_id
 
     def get_scan(self, scan_id: str) -> Optional[Dict]:
         """Get a single scan result."""
@@ -232,15 +235,16 @@ class Database:
                         targets: List[str], description: str = "",
                         pipeline: str = "") -> str:
         """Create a new campaign."""
-        c = self.conn.cursor()
-        now = datetime.utcnow().isoformat() + "Z"
-        c.execute("""
-            INSERT INTO campaigns
-            (campaign_id, name, description, targets, pipeline, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (campaign_id, name, description, json.dumps(targets), pipeline, now))
-        self.conn.commit()
-        return campaign_id
+        with self._lock:
+            c = self.conn.cursor()
+            now = datetime.utcnow().isoformat() + "Z"
+            c.execute("""
+                INSERT INTO campaigns
+                (campaign_id, name, description, targets, pipeline, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (campaign_id, name, description, json.dumps(targets), pipeline, now))
+            self.conn.commit()
+            return campaign_id
 
     def get_campaign(self, campaign_id: str) -> Optional[Dict]:
         """Get campaign details."""
@@ -257,20 +261,21 @@ class Database:
 
     def update_campaign_stats(self, campaign_id: str):
         """Recalculate campaign statistics."""
-        c = self.conn.cursor()
-        c.execute("SELECT COUNT(*) FROM scans WHERE campaign_id = ?", (campaign_id,))
-        total_scans = c.fetchone()[0]
-        c.execute("""
-            SELECT COUNT(*) FROM findings f
-            JOIN scans s ON f.scan_id = s.scan_id
-            WHERE s.campaign_id = ?
-        """, (campaign_id,))
-        total_findings = c.fetchone()[0]
-        c.execute("""
-            UPDATE campaigns SET total_scans = ?, total_findings = ?
-            WHERE campaign_id = ?
-        """, (total_scans, total_findings, campaign_id))
-        self.conn.commit()
+        with self._lock:
+            c = self.conn.cursor()
+            c.execute("SELECT COUNT(*) FROM scans WHERE campaign_id = ?", (campaign_id,))
+            total_scans = c.fetchone()[0]
+            c.execute("""
+                SELECT COUNT(*) FROM findings f
+                JOIN scans s ON f.scan_id = s.scan_id
+                WHERE s.campaign_id = ?
+            """, (campaign_id,))
+            total_findings = c.fetchone()[0]
+            c.execute("""
+                UPDATE campaigns SET total_scans = ?, total_findings = ?
+                WHERE campaign_id = ?
+            """, (total_scans, total_findings, campaign_id))
+            self.conn.commit()
 
     # -------------------------------------------------------------------------
     # Statistics
@@ -309,7 +314,13 @@ class Database:
     def close(self):
         """Close the database connection."""
         if self.conn:
-            self.conn.close()
+            try:
+                self.conn.close()
+            except Exception:
+                pass
+        Database._instance = None
+        global _db
+        _db = None
 
 
 def _row_to_dict(row) -> Dict:
@@ -338,6 +349,7 @@ _db = None
 def get_db() -> Database:
     """Get the global database instance."""
     global _db
-    if _db is None:
+    if _db is None or Database._instance is None:
+        Database._instance = None
         _db = Database()
     return _db

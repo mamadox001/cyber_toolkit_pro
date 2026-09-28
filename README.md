@@ -4,7 +4,7 @@
 
 A modular, extensible framework for penetration testing, security assessment, and blue team operations. Inspired by Metasploit, Burp Suite, and lightweight SIEM architectures.
 
-> **43 tools** · **13 categories** · **Plugin architecture** · **SQLite database** · **Web dashboard** · **CI/CD ready**
+> **76 tools** · **17 categories** · **Plugin architecture** · **SQLite database** · **Web dashboard** · **CI/CD ready**
 
 ---
 
@@ -30,8 +30,11 @@ python main.py list
 pip install fastapi uvicorn
 python main.py dashboard
 
+# Launch Hacker TUI
+python main.py tui
+
 # Run tests
-pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 ---
@@ -57,21 +60,32 @@ cyber_toolkit_pro/
 │   ├── vault.py               # Encrypted credential vault
 │   ├── audit.py               # Immutable audit trail
 │   ├── database.py            # SQLite persistent storage
-│   └── campaign.py            # Multi-target campaign engine
+│   ├── campaign.py            # Multi-target campaign engine
+│   ├── differ.py              # Attack surface differential engine
+│   ├── notifier.py            # Multi-channel alerts (Slack/Discord/Telegram/Email)
+│   ├── scheduler.py           # Scan scheduling engine
+│   ├── threat_intel.py        # Threat intel (VirusTotal, AbuseIPDB, Shodan)
+│   ├── stix_exporter.py       # STIX 2.1 threat intelligence export
+│   ├── plugin_manager.py      # Remote plugin install/update/list
+│   └── tui.py                 # Textual terminal UI
 ├── modules/                   # Tool modules (auto-discovered)
-│   ├── reconnaissance/        # DNS, WHOIS, subdomain, HTTP fingerprint
+│   ├── reconnaissance/        # DNS, WHOIS, subdomain, tech stack, CT logs, ASN
 │   ├── scanning/              # Port scanner, nmap, service detection, NSE
-│   ├── web/                   # Dir brute, fuzzer, SQLi, XSS testing
+│   ├── web/                   # Dir brute, SQLi, XSS, SSRF, CORS, CRLF, CSRF, cmd inj
 │   ├── exploitation/          # Reverse shell, payloads, exploit runner
 │   ├── passwords/             # Wordlist attack, hash cracker, cred checker
 │   ├── detection/             # Anomaly detector, IP tracker, alert system
 │   ├── log_analysis/          # Auth/web log parsers, SSH brute detection
-│   ├── forensics/             # File analyzer, string extractor, type detect
+│   ├── forensics/             # File analyzer, string extractor, YARA, timeline
 │   ├── siem/                  # Log aggregation, search, alert generation
-│   ├── osint/                 # Email harvest, social recon, breach, dorking
-│   ├── network/               # Packet sniffer, ARP detector, DNS monitor
+│   ├── osint/                 # Email harvest, social recon, breach, dorking, wayback
+│   ├── network/               # Packet sniffer, ARP detector, DNS monitor, traceroute
 │   ├── wireless/              # WiFi scanner, rogue AP detector
-│   └── reporting/             # JSON, HTML, executive, compliance reports
+│   ├── cloud/                 # S3 buckets, Azure blob, metadata, container, k8s
+│   ├── crypto/                # SSL/TLS audit, certificates, JWT analysis, weak crypto
+│   ├── api_security/          # API fuzzing, BOLA/BFLA, rate limiting, GraphQL
+│   ├── mobile/                # Android APK analysis, iOS Info.plist parser
+│   └── reporting/             # JSON, HTML, executive, compliance, PDF reports
 ├── plugins/                   # Drop-in plugin system
 ├── config/                    # YAML configs + pipeline profiles + scope
 ├── wordlists/                 # Brute force wordlists
